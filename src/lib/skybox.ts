@@ -19,7 +19,15 @@ export default class Skybox {
         this.textures = {};
     }
 
-    // setTextures
+    public setTextures(canvases: Record<string, HTMLCanvasElement>) {
+        this.textures = {};
+        for (const [key, canvas] of Object.entries(canvases)) {
+            this.textures[key] = new webgl.Texture(this.gl, 0, canvas, canvas.width, canvas.height, {
+                min: this.gl.LINEAR_MIPMAP_LINEAR,
+                mag: this.gl.LINEAR,
+            });
+        }
+    }
 
     // render
 }
