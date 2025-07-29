@@ -173,3 +173,61 @@ export class Renderable {
         }
     }
 }
+
+function defaultTextureOptions(gl: WebGLRenderingContext, {
+    target = gl.TEXTURE_2D,
+    mag = gl.NEAREST,
+    min = gl.NEAREST,
+    wraps = gl.CLAMP_TO_EDGE,
+    wrapt = gl.CLAMP_TO_EDGE,
+    internalFormat = gl.RGBA,
+    format = gl.RGBA,
+    type = gl.UNSIGNED_BYTE,
+} = {}) {
+    return { target, mag, min, wraps, wrapt, internalFormat, format, type };
+}
+export class Texture {
+    texture: WebGLTexture;
+    options: ReturnType<typeof defaultTextureOptions>;
+
+    constructor(
+        private gl: WebGLRenderingContext,
+        private index: number,
+        private data: HTMLCanvasElement,
+        private width: number,
+        private height: number,
+        options = {},
+    ) {
+        this.options = defaultTextureOptions(gl, options);
+        this.activate();
+        this.texture = gl.createTexture();
+        this.bind();
+        gl.texImage2D(
+            this.options.target, 0, this.options.internalFormat,
+            this.options.format, this.options.type, this.data);
+        gl.texParameteri(this.options.target, gl.TEXTURE_MAG_FILTER, this.options.mag);
+        gl.texParameteri(this.options.target, gl.TEXTURE_MIN_FILTER, this.options.min);
+        gl.texParameteri(this.options.target, gl.TEXTURE_WRAP_S, this.options.wraps);
+        gl.texParameteri(this.options.target, gl.TEXTURE_WRAP_T, this.options.wrapt);
+        if (this.options.mag !== gl.NEAREST || this.options.min !== gl.NEAREST) {
+            gl.generateMipmap(this.options.target);
+        }
+    }
+
+    private bind() {
+        this.gl.bindTexture(this.options.target, this.texture);
+    }
+
+    private activate() {
+        this.gl.activeTexture(this.gl.TEXTURE0 + this.index);
+    }
+
+    private reset() {
+        this.activate();
+        this.bind();
+        this.gl.texImage2D(
+            this.options.target, 0, this.options.internalFormat,
+            this.width, this.height, 0,
+            this.options.format, this.options.type, this.data as any); // TODO check
+    }
+}
