@@ -214,7 +214,7 @@ export class Texture {
         }
     }
 
-    private bind() {
+    public bind() {
         this.gl.bindTexture(this.options.target, this.texture);
     }
 

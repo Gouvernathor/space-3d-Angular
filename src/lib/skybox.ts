@@ -1,13 +1,15 @@
+import * as glm from "gl-matrix";
 import loadProgram from "./loadProgram";
 import * as webgl from "./webgl";
 
 import skyboxGlsl from "./glsl/skybox.glsl";
+import { SideName } from "./types";
 
 export default class Skybox {
     private gl: WebGLRenderingContext;
     private pSkybox: webgl.Program;
     private rSkybox: webgl.Renderable;
-    private textures: { [key: string]: unknown };
+    private textures: Record<SideName, webgl.Texture>|null = null;
 
     constructor(
         private renderCanvas: HTMLCanvasElement,
@@ -16,20 +18,57 @@ export default class Skybox {
         this.gl.pixelStorei(this.gl.UNPACK_FLIP_Y_WEBGL, true);
         this.pSkybox = loadProgram(this.gl, skyboxGlsl);
         this.rSkybox = buildQuad(this.gl, this.pSkybox);
-        this.textures = {};
     }
 
-    public setTextures(canvases: Record<string, HTMLCanvasElement>) {
-        this.textures = {};
+    public setTextures(canvases: Record<SideName, HTMLCanvasElement>) {
+        const textures = {} as Record<SideName, webgl.Texture>;
         for (const [key, canvas] of Object.entries(canvases)) {
-            this.textures[key] = new webgl.Texture(this.gl, 0, canvas, canvas.width, canvas.height, {
+            textures[key as SideName] = new webgl.Texture(this.gl, 0, canvas, canvas.width, canvas.height, {
                 min: this.gl.LINEAR_MIPMAP_LINEAR,
                 mag: this.gl.LINEAR,
             });
         }
+        this.textures = textures;
     }
 
-    // render
+    public render(view: Float32List, projection: Float32List) {
+        this.gl.viewport(0, 0, this.renderCanvas.width, this.renderCanvas.height);
+
+        const model = glm.mat4.create();
+
+        this.pSkybox.use();
+        this.pSkybox.setUniform("uView", "Matrix4fv", false, view);
+        this.pSkybox.setUniform("uProjection", "Matrix4fv", false, projection);
+
+        this.textures!.front.bind();
+        this.pSkybox.setUniform("uModel", "Matrix4fv", false, model);
+        this.rSkybox.render();
+
+        this.textures!.back.bind();
+        glm.mat4.rotateY(model, glm.mat4.create(), Math.PI);
+        this.pSkybox.setUniform("uModel", "Matrix4fv", false, model);
+        this.rSkybox.render();
+
+        this.textures!.left.bind();
+        glm.mat4.rotateY(model, glm.mat4.create(), Math.PI / 2);
+        this.pSkybox.setUniform("uModel", "Matrix4fv", false, model);
+        this.rSkybox.render();
+
+        this.textures!.right.bind();
+        glm.mat4.rotateY(model, glm.mat4.create(), -Math.PI / 2);
+        this.pSkybox.setUniform("uModel", "Matrix4fv", false, model);
+        this.rSkybox.render();
+
+        this.textures!.top.bind();
+        glm.mat4.rotateX(model, glm.mat4.create(), Math.PI / 2);
+        this.pSkybox.setUniform("uModel", "Matrix4fv", false, model);
+        this.rSkybox.render();
+
+        this.textures!.bottom.bind();
+        glm.mat4.rotateX(model, glm.mat4.create(), -Math.PI / 2);
+        this.pSkybox.setUniform("uModel", "Matrix4fv", false, model);
+        this.rSkybox.render();
+    }
 }
 
 function buildQuad(gl: WebGLRenderingContext, program: webgl.Program) {
