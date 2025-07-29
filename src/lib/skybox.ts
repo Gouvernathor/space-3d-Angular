@@ -89,8 +89,8 @@ function buildQuad(gl: WebGLRenderingContext, program: webgl.Program) {
         0, 1
     ];
     const attribs = webgl.buildAttribs(gl, { aPosition: 3, aUV: 2 });
-    attribs["aPosition"].buffer.set(new Float32Array(position));
-    attribs["aUV"].buffer.set(new Float32Array(uv));
+    attribs.aPosition.buffer.set(new Float32Array(position));
+    attribs.aUV.buffer.set(new Float32Array(uv));
     const count = position.length / 9;
     const renderable = new webgl.Renderable(gl, program, attribs, count);
     return renderable;
