@@ -126,3 +126,19 @@ export class Program {
         this.gl[`uniform${type}`].apply(this.gl, args);
     }
 }
+
+type Attrib = { buffer: GLBuffer; size: number };
+
+export function buildAttribs<K extends string>(
+    gl: WebGLRenderingContext,
+    layout: Record<NoInfer<K>, number>,
+): Record<NoInfer<K>, Attrib> {
+    const attribs: { [P in K]: Attrib } = {} as any;
+    for (const key in layout) {
+        attribs[key as K] = {
+            buffer: new GLBuffer(gl),
+            size: layout[key as K],
+        };
+    }
+    return attribs;
+}
