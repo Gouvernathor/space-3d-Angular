@@ -1,0 +1,128 @@
+class GLBuffer {
+    private buffer: WebGLBuffer|null = null;
+
+    constructor(private gl: WebGLRenderingContext) {
+        this.initialize();
+    }
+
+    private initialize() {
+        this.buffer = this.gl.createBuffer();
+    }
+
+    private bind() {
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.buffer);
+    }
+
+    public set(data: Float32Array) { // type assumed from usage, may be extended
+        this.bind();
+        this.gl.bufferData(this.gl.ARRAY_BUFFER, data, this.gl.STATIC_DRAW);
+    }
+};
+
+interface _T0 {
+    name: string;
+    location: number;
+    type: number;
+    size: number;
+}
+interface _T1 {
+    name: string;
+    location: WebGLUniformLocation|null;
+    type: number;
+    size: number;
+}
+
+export class Program {
+    private program: WebGLProgram;
+    public readonly attribs: Record<string, _T0>;
+    private uniforms: Record<string, _T1>;
+
+    constructor(
+        private gl: WebGLRenderingContext,
+        vertexShaderSource: string,
+        fragmentShaderSource: string,
+    ) {
+        this.program = this.compileProgram(vertexShaderSource, fragmentShaderSource);
+        this.attribs = this.gatherAttribs();
+        this.uniforms = this.gatherUniforms();
+    }
+
+    private use() {
+        this.gl.useProgram(this.program);
+    }
+
+    private compileProgram(vertexShaderSource: string, fragmentShaderSource: string): WebGLProgram {
+        const vertexShader = this.compileShader(vertexShaderSource, this.gl.VERTEX_SHADER);
+        const fragmentShader = this.compileShader(fragmentShaderSource, this.gl.FRAGMENT_SHADER);
+        const program = this.gl.createProgram();
+        this.gl.attachShader(program, vertexShader);
+        this.gl.attachShader(program, fragmentShader);
+        this.gl.linkProgram(program);
+        if (!this.gl.getProgramParameter(program, this.gl.LINK_STATUS)) {
+            throw new Error(`Program link error: ${this.gl.getProgramInfoLog(program)}`);
+        }
+        return program;
+    }
+
+    private compileShader(source: string, type: number): WebGLShader {
+        const shader = this.gl.createShader(type)!;
+        this.gl.shaderSource(shader, source);
+        this.gl.compileShader(shader);
+        if (!this.gl.getShaderParameter(shader, this.gl.COMPILE_STATUS)) {
+            const err = this.gl.getShaderInfoLog(shader)!;
+            const lineno = parseInt(err.split(":")[2]);
+            const split = source.split("\n");
+            for (let i = 0; i < split.length; i++) {
+                console.log(`${i} ${split[i]}`);
+                if (i === lineno - 1) {
+                    console.warn(err);
+                }
+            }
+            const typeString = type === this.gl.VERTEX_SHADER ? "vertex" : "fragment";
+            throw new Error(`Failed to compile ${typeString} shader.`);
+        }
+        return shader;
+    }
+
+    private gatherAttribs() {
+        const attribs: Record<string, _T0> = {};
+        const nAttribs = this.gl.getProgramParameter(this.program, this.gl.ACTIVE_ATTRIBUTES);
+        for (let i = 0; i < nAttribs; i++) {
+            const attrib = this.gl.getActiveAttrib(this.program, i)!;
+            attribs[attrib.name] = {
+                name: attrib.name,
+                location: this.gl.getAttribLocation(this.program, attrib.name),
+                type: attrib.type,
+                size: attrib.size,
+            };
+        }
+        return attribs;
+    }
+
+    private gatherUniforms() {
+        const uniforms: Record<string, _T1> = {};
+        const nUniforms = this.gl.getProgramParameter(this.program, this.gl.ACTIVE_UNIFORMS);
+        for (let i = 0; i < nUniforms; i++) {
+            const uniform = this.gl.getActiveUniform(this.program, i)!;
+            uniforms[uniform.name] = {
+                name: uniform.name,
+                location: this.gl.getUniformLocation(this.program, uniform.name),
+                type: uniform.type,
+                size: uniform.size,
+            };
+        }
+        return uniforms;
+    }
+
+    public setUniform(name: string, type: string, ...args: unknown[]) {
+        this.use();
+        try {
+            args.unshift(this.uniforms[name].location);
+        } catch (e) {
+            console.error(name);
+            throw e;
+        }
+        // @ts-ignore
+        this.gl[`uniform${type}`].apply(this.gl, args);
+    }
+}
