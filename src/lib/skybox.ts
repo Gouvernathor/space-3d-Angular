@@ -3,7 +3,7 @@ import loadProgram from "./loadProgram";
 import * as webgl from "./webgl";
 
 import skyboxGlsl from "./glsl/skybox.glsl";
-import { SideName } from "./types";
+import { SideName } from "./constants";
 
 export default class Skybox {
     private gl: WebGLRenderingContext;
