@@ -131,9 +131,9 @@ type Attrib = { buffer: GLBuffer; size: number };
 
 export function buildAttribs<K extends string>(
     gl: WebGLRenderingContext,
-    layout: Record<NoInfer<K>, number>,
+    layout: { [P in K]: number },
 ) {
-    const attribs: { [P in NoInfer<K>]: Attrib } = {} as any;
+    const attribs: { [P in K]: Attrib } = {} as any;
     for (const key in layout) {
         attribs[key as K] = {
             buffer: new GLBuffer(gl),
