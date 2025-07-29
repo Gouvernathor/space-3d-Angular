@@ -9,7 +9,7 @@ class GLBuffer {
         this.buffer = this.gl.createBuffer();
     }
 
-    private bind() {
+    public bind() {
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.buffer);
     }
 
@@ -47,7 +47,7 @@ export class Program {
         this.uniforms = this.gatherUniforms();
     }
 
-    private use() {
+    public use() {
         this.gl.useProgram(this.program);
     }
 
@@ -132,8 +132,8 @@ type Attrib = { buffer: GLBuffer; size: number };
 export function buildAttribs<K extends string>(
     gl: WebGLRenderingContext,
     layout: Record<NoInfer<K>, number>,
-): Record<NoInfer<K>, Attrib> {
-    const attribs: { [P in K]: Attrib } = {} as any;
+) {
+    const attribs: { [P in NoInfer<K>]: Attrib } = {} as any;
     for (const key in layout) {
         attribs[key as K] = {
             buffer: new GLBuffer(gl),
@@ -141,4 +141,35 @@ export function buildAttribs<K extends string>(
         };
     }
     return attribs;
+}
+
+export class Renderable {
+    constructor(
+        private gl: WebGLRenderingContext,
+        private program: Program,
+        private attribs: Record<string, Attrib>,
+        private primitiveCount: number,
+    ) {}
+
+    public render() {
+        this.program.use();
+        for (const name in this.attribs) {
+            const buffer = this.attribs[name].buffer;
+            const size = this.attribs[name].size;
+            let location;
+            try {
+                location = this.program.attribs[name].location;
+            } catch (e) {
+                console.error(`Failed to get location for attribute ${name}`);
+                throw e;
+            }
+            buffer.bind();
+            this.gl.enableVertexAttribArray(location);
+            this.gl.vertexAttribPointer(location, size, this.gl.FLOAT, false, 0, 0);
+        }
+        this.gl.drawArrays(this.gl.TRIANGLES, 0, 3 * this.primitiveCount);
+        for (const name in this.attribs) {
+            this.gl.disableVertexAttribArray(this.program.attribs[name].location);
+        }
+    }
 }
