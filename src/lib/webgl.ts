@@ -54,7 +54,7 @@ export class Program {
     private compileProgram(vertexShaderSource: string, fragmentShaderSource: string): WebGLProgram {
         const vertexShader = this.compileShader(vertexShaderSource, this.gl.VERTEX_SHADER);
         const fragmentShader = this.compileShader(fragmentShaderSource, this.gl.FRAGMENT_SHADER);
-        const program = this.gl.createProgram();
+        const program = this.gl.createProgram()!;
         this.gl.attachShader(program, vertexShader);
         this.gl.attachShader(program, fragmentShader);
         this.gl.linkProgram(program);
@@ -200,7 +200,7 @@ export class Texture {
     ) {
         this.options = defaultTextureOptions(gl, options);
         this.activate();
-        this.texture = gl.createTexture();
+        this.texture = gl.createTexture()!;
         this.bind();
         gl.texImage2D(
             this.options.target, 0, this.options.internalFormat,
