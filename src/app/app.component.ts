@@ -8,18 +8,6 @@ import Space3D from '../lib/space3d';
 import { SideName } from '../lib/constants';
 import AnimationFrameManager from '../util/animationFrameManager';
 
-type ControlParams = {
-    seed: string;
-    fov: number;
-    pointStars: boolean;
-    stars: boolean;
-    nebulae: boolean;
-    sun: boolean;
-    resolution: number;
-    animate: boolean;
-    animationSpeed: number;
-};
-
 @Component({
     selector: 'app-root',
     imports: [],
@@ -51,9 +39,9 @@ export class AppComponent {
         back: computed(() => this.backRef().nativeElement),
     };
 
-    private readonly params: ControlParams = {
+    private readonly params = {
         seed: generateRandomSeed(),
-        fov: 30,
+        fov: 45,
         pointStars: true,
         stars: true,
         nebulae: true,
@@ -223,7 +211,7 @@ export class AppComponent {
 
     private animationEpoch: number|null = null;
     private lastPosition: number|null = null;
-    private static readonly ANIMATION_SPEED_FACTOR = .00025;
+    private static readonly ANIMATION_SPEED_FACTOR = .00008;
     private computePosition(nowTimestamp: number, epoch: number): number {
         return (nowTimestamp - epoch) * this.params.animationSpeed*AppComponent.ANIMATION_SPEED_FACTOR;
     }
