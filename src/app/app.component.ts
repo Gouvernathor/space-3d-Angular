@@ -141,7 +141,8 @@ export class AppComponent {
         pane.element.style.left = "16px";
         pane.element.style.top = "272px";
 
-        pane.addBinding(this.params, "seed", { label: "Seed" });
+        pane.addBinding(this.params, "seed", { label: "Seed" })
+            .on("change", () => this.renderTextures());
 
         pane.addButton({ title: "Randomize seed" }).on("click", () => {
             this.params.seed = generateRandomSeed();
@@ -149,7 +150,8 @@ export class AppComponent {
             this.renderTextures();
         });
 
-        pane.addBinding(this.params, "fov", { label: "Field of View °", min: 10, max: 150, step: 1 });
+        pane.addBinding(this.params, "fov", { label: "Field of View °", min: 10, max: 150, step: 1 })
+            .on("change", () => this.scheduleRender());
 
         pane.addBinding(this.params, "pointStars", { label: "Point Stars" })
             .on("change", () => this.renderTextures());
@@ -244,7 +246,6 @@ export class AppComponent {
 
         if (this.params.animate) {
             this.animationTime += .0025 * this.params.animationSpeed;
-            // requestAnimationFrame(() => this.render());
             this.scheduleRender();
         }
     }
