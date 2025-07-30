@@ -1,9 +1,9 @@
 import * as glm from "gl-matrix";
+import { SideName } from "./constants";
 import loadProgram from "./loadProgram";
 import * as webgl from "./webgl";
 
 import skyboxGlsl from "./glsl/skybox.glsl";
-import { SideName } from "./constants";
 
 export default class Skybox {
     private gl: WebGLRenderingContext;

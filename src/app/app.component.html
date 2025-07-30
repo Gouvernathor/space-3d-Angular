@@ -1,1 +1,10 @@
-<router-outlet />
+<canvas #left id="texture-left" class="texture"></canvas>
+<canvas #right id="texture-right" class="texture"></canvas>
+<canvas #top id="texture-top" class="texture"></canvas>
+<canvas #bottom id="texture-bottom" class="texture"></canvas>
+<canvas #front id="texture-front" class="texture"></canvas>
+<canvas #back id="texture-back" class="texture"></canvas>
+
+<!-- @for (sideName of sideNames; track sideName) {
+  <canvas id="texture-{{sideName}}" class="texture"></canvas>
+} -->
