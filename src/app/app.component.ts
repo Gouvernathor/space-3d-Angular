@@ -15,6 +15,7 @@ type ControlParams = {
     nebulae: boolean;
     sun: boolean;
     resolution: number;
+    animate: boolean;
     animationSpeed: number;
 };
 
@@ -57,6 +58,7 @@ export class AppComponent {
         nebulae: true,
         sun: true,
         resolution: 1024,
+        animate: true,
         animationSpeed: 1.0,
     };
 
@@ -93,6 +95,9 @@ export class AppComponent {
                 this.params.resolution = resolution;
             }
 
+            if (queryParams.has("animate")) {
+                this.params.animate = queryParams.get("animate") === "true";
+            }
             let animationSpeed: number;
             if (queryParams.has("animationSpeed") && !isNaN(animationSpeed = parseFloat(queryParams.get("animationSpeed")!))) {
                 this.params.animationSpeed = animationSpeed;
@@ -161,6 +166,11 @@ export class AppComponent {
                 options: { 256:256, 512:512, 1024:1024, 2048:2048, 4096:4096 }
         }).on("change", () => this.renderTextures());
 
+        pane.addBinding(this.params, "animate", { label: "Animate" }).on("change", () => {
+            if (this.params.animate) {
+                this.render();
+            }
+        });
         pane.addBinding(this.params, "animationSpeed", { label: "Animation Speed", min: 0, max: 10 });
 
         pane.addButton({ title: "Copy (to) URL" }).on("click", () => {
@@ -199,8 +209,6 @@ export class AppComponent {
 
     private animationTime = 0;
     private render() {
-        this.animationTime += .0025 * this.params.animationSpeed;
-
         const view = glm.mat4.create();
         const projection = glm.mat4.create();
 
@@ -221,8 +229,9 @@ export class AppComponent {
 
         this.skybox.render(view, projection);
 
-        requestAnimationFrame(() => this.render());
-
-        // this.updateParams();
+        if (this.params.animate) {
+            this.animationTime += .0025 * this.params.animationSpeed;
+            requestAnimationFrame(() => this.render());
+        }
     }
 }
