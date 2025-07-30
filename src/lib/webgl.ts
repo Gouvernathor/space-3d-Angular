@@ -15,13 +15,13 @@ class GLBuffer {
     }
 };
 
-interface _T0 {
+interface ProgramAttrib {
     name: string;
     location: number;
     type: number;
     size: number;
 }
-interface _T1 {
+interface ProgramUniform {
     name: string;
     location: WebGLUniformLocation|null;
     type: number;
@@ -30,8 +30,8 @@ interface _T1 {
 
 export class Program {
     private readonly program: WebGLProgram;
-    public readonly attribs: { readonly [K: string]: _T0 };
-    private readonly uniforms: { readonly [K: string]: _T1 };
+    public readonly attribs: { readonly [K: string]: ProgramAttrib };
+    private readonly uniforms: { readonly [K: string]: ProgramUniform };
 
     constructor(
         private readonly gl: WebGLRenderingContext,
@@ -81,7 +81,7 @@ export class Program {
     }
 
     private gatherAttribs() {
-        const attribs: Record<string, _T0> = {};
+        const attribs: Record<string, ProgramAttrib> = {};
         const nAttribs = this.gl.getProgramParameter(this.program, this.gl.ACTIVE_ATTRIBUTES);
         for (let i = 0; i < nAttribs; i++) {
             const attrib = this.gl.getActiveAttrib(this.program, i)!;
@@ -96,7 +96,7 @@ export class Program {
     }
 
     private gatherUniforms() {
-        const uniforms: Record<string, _T1> = {};
+        const uniforms: Record<string, ProgramUniform> = {};
         const nUniforms = this.gl.getProgramParameter(this.program, this.gl.ACTIVE_UNIFORMS);
         for (let i = 0; i < nUniforms; i++) {
             const uniform = this.gl.getActiveUniform(this.program, i)!;
