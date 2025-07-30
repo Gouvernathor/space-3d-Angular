@@ -308,7 +308,7 @@ function buildStar(
 }
 
 function buildBox(gl: WebGLRenderingContext, program: webgl.Program) {
-    var position = [
+    const position = [
         -1, -1, -1,  1, -1, -1,  1,  1, -1, -1, -1, -1,  1,  1, -1, -1,  1, -1,
          1, -1,  1, -1, -1,  1, -1,  1,  1,  1, -1,  1, -1,  1,  1,  1,  1,  1,
          1, -1, -1,  1, -1,  1,  1,  1,  1,  1, -1, -1,  1,  1,  1,  1,  1, -1,
@@ -316,11 +316,10 @@ function buildBox(gl: WebGLRenderingContext, program: webgl.Program) {
         -1,  1, -1,  1,  1, -1,  1,  1,  1, -1,  1, -1,  1,  1,  1, -1,  1,  1,
         -1, -1,  1,  1, -1,  1,  1, -1, -1, -1, -1,  1,  1, -1, -1, -1, -1, -1,
     ];
-    var attribs = webgl.buildAttribs(gl, { aPosition: 3 });
+    const attribs = webgl.buildAttribs(gl, { aPosition: 3 });
     attribs.aPosition.buffer.set(new Float32Array(position));
-    var count = position.length / 9;
-    var renderable = new webgl.Renderable(gl, program, attribs, count);
-    return renderable;
+    const count = position.length / 9;
+    return new webgl.Renderable(gl, program, attribs, count);
 }
 
 function quadRotBetweenVecs(a: glm.ReadonlyVec3, b: glm.ReadonlyVec3) {
