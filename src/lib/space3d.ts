@@ -76,9 +76,6 @@ export default class Space3D {
     }
 
     public render(params: RenderParams) {
-        // return value
-        const textures: Record<SideName, HTMLCanvasElement> = {} as any;
-
         // Changes to resolution
         this.canvas.width = this.canvas.height = params.resolution;
         this.gl.viewport(0, 0, params.resolution, params.resolution);
@@ -203,6 +200,8 @@ export default class Space3D {
         const projection = glm.mat4.create();
         glm.mat4.perspective(projection, Math.PI / 2, 1, .1, 256);
 
+        // return value
+        const textures: Record<SideName, HTMLCanvasElement> = {} as any;
         // iterate over the directions to render the tectures
         for (const side of sideNames) {
             // clear the context
