@@ -63,8 +63,8 @@ export default class Space3D {
             color.set(star.color, i*18);
         }
         const attribs = webgl.buildAttribs(this.gl, { aPosition: 3, aColor: 3 });
-        attribs["aPosition"].buffer.set(position);
-        attribs["aColor"].buffer.set(color);
+        attribs.aPosition.buffer.set(position);
+        attribs.aColor.buffer.set(color);
         const count = position.length / 9;
         this.rPointStars = new webgl.Renderable(
             this.gl, this.pPointStars, attribs, count);
@@ -196,9 +196,7 @@ export default class Space3D {
         };
 
         // model, view, and projection matrices
-        const view = glm.mat4.create();
-        const projection = glm.mat4.create();
-        glm.mat4.perspective(projection, Math.PI / 2, 1, .1, 256);
+        const projection: glm.ReadonlyMat4 = glm.mat4.perspective(glm.mat4.create(), Math.PI / 2, 1, .1, 256);
 
         // return value
         const textures: Record<SideName, HTMLCanvasElement> = {} as any;
@@ -210,7 +208,7 @@ export default class Space3D {
 
             // look in the direction of the side
             const dir = dirs[side];
-            glm.mat4.lookAt(view, [0, 0, 0], dir.target, dir.up);
+            const view: glm.ReadonlyMat4 = glm.mat4.lookAt(glm.mat4.create(), [0, 0, 0], dir.target, dir.up);
 
             // render point stars
             this.pPointStars.use();
@@ -238,9 +236,9 @@ export default class Space3D {
 
             // render nebulae
             this.pNebula.use();
-            model = glm.mat4.create();
+            const empty: glm.ReadonlyMat4 = glm.mat4.create();
             for (const p of nebulaParams) {
-                this.pNebula.setUniform("uModel", "Matrix4fv", false, model);
+                this.pNebula.setUniform("uModel", "Matrix4fv", false, empty);
                 this.pNebula.setUniform("uView", "Matrix4fv", false, view);
                 this.pNebula.setUniform("uProjection", "Matrix4fv", false, projection);
                 this.pNebula.setUniform("uScale", "1f", p.scale);
@@ -255,7 +253,7 @@ export default class Space3D {
             this.pSun.use();
             this.pSun.setUniform("uView", "Matrix4fv", false, view);
             this.pSun.setUniform("uProjection", "Matrix4fv", false, projection);
-            this.pSun.setUniform("uModel", "Matrix4fv", false, model);
+            this.pSun.setUniform("uModel", "Matrix4fv", false, empty);
             for (const sun of sunParams) {
                 this.pSun.setUniform("uPosition", "3fv", sun.pos);
                 this.pSun.setUniform("uColor", "3fv", sun.color);
