@@ -1,3 +1,5 @@
+import { Canvas } from "./constants";
+
 class GLBuffer {
     private readonly buffer: WebGLBuffer|null = null;
 
@@ -189,7 +191,7 @@ export class Texture {
     constructor(
         private readonly gl: WebGLRenderingContext,
         private readonly index: number,
-        private readonly data: HTMLCanvasElement,
+        private readonly data: Canvas,
         private readonly width: number,
         private readonly height: number,
         options = {},

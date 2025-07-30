@@ -1,6 +1,6 @@
 import * as glm from "gl-matrix";
 import RNG, { type MersenneTwister } from "@gouvernathor/rng"
-import { SideName, sideNames } from "./constants";
+import { Canvas, SideName, sideNames } from "./constants";
 import loadProgram from "./loadProgram";
 import * as webgl from "./webgl";
 
@@ -22,7 +22,7 @@ type RenderParams = {
 };
 
 export default class Space3D {
-    private readonly canvas: HTMLCanvasElement;
+    private readonly canvas: Canvas;
     private readonly gl: WebGLRenderingContext;
     private readonly pNebula: webgl.Program;
     private readonly pPointStars: webgl.Program;
@@ -35,7 +35,7 @@ export default class Space3D {
 
     constructor() {
         // Offscreen rendering canvas
-        this.canvas = document.createElement("canvas");
+        this.canvas = new OffscreenCanvas(150, 300);
 
         // gl context
         this.gl = this.canvas.getContext("webgl")!;
@@ -199,7 +199,7 @@ export default class Space3D {
         const projection: glm.ReadonlyMat4 = glm.mat4.perspective(glm.mat4.create(), Math.PI / 2, 1, .1, 256);
 
         // return value
-        const textures: Record<SideName, HTMLCanvasElement> = {} as any;
+        const textures: Record<SideName, Canvas> = {} as any;
         // iterate over the directions to render the tectures
         for (const side of sideNames) {
             // clear the context
@@ -263,8 +263,7 @@ export default class Space3D {
             }
 
             // create the texture
-            const c = document.createElement("canvas");
-            c.width = c.height = params.resolution;
+            const c = new OffscreenCanvas(params.resolution, params.resolution);
             const ctx = c.getContext("2d")!;
             ctx.drawImage(this.canvas, 0, 0);
             textures[side] = c;

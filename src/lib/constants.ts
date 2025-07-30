@@ -7,3 +7,5 @@ export const sideNames = [
     'back',
 ] as const;
 export type SideName = (typeof sideNames)[number];
+
+export type Canvas = HTMLCanvasElement | OffscreenCanvas;

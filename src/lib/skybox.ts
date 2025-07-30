@@ -1,5 +1,5 @@
 import * as glm from "gl-matrix";
-import { SideName } from "./constants";
+import { Canvas, SideName } from "./constants";
 import loadProgram from "./loadProgram";
 import * as webgl from "./webgl";
 
@@ -20,7 +20,7 @@ export default class Skybox {
         this.rSkybox = buildQuad(this.gl, this.pSkybox);
     }
 
-    public setTextures(canvases: Record<SideName, HTMLCanvasElement>) {
+    public setTextures(canvases: Record<SideName, Canvas>) {
         const textures = {} as Record<SideName, webgl.Texture>;
         for (const [key, canvas] of Object.entries(canvases)) {
             textures[key as SideName] = new webgl.Texture(this.gl, 0, canvas, canvas.width, canvas.height, {
