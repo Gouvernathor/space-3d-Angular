@@ -6,6 +6,7 @@ import generateRandomSeed from '../util/generateRandomSeed';
 import Skybox from '../lib/skybox';
 import Space3D from '../lib/space3d';
 import { SideName } from '../lib/constants';
+import { firstValueFrom } from 'rxjs';
 
 type ControlParams = {
     seed: string;
@@ -56,7 +57,10 @@ export class AppComponent {
 
     async ngOnInit() {
         // Load param values from the URL
-        this.route.queryParamMap.subscribe(queryParams => {
+        // the await is important : tweakpane init needs the params object to be set
+        // the firstValueFrom is also important : we can't have the params be reassigned
+        // otherwise tweakpane will fail
+        await firstValueFrom(this.route.queryParamMap).then((queryParams) => {
             const seed = queryParams.has("seed") ?
                 queryParams.get("seed")! :
                 generateRandomSeed();
