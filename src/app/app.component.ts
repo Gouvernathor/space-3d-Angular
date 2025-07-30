@@ -6,7 +6,6 @@ import generateRandomSeed from '../util/generateRandomSeed';
 import Skybox from '../lib/skybox';
 import Space3D from '../lib/space3d';
 import { SideName } from '../lib/constants';
-import { firstValueFrom } from 'rxjs';
 
 type ControlParams = {
     seed: string;
@@ -50,46 +49,59 @@ export class AppComponent {
         back: computed(() => this.backRef().nativeElement),
     };
 
-    params!: ControlParams;
+    private readonly params: ControlParams = {
+        seed: generateRandomSeed(),
+        fov: 60,
+        pointStars: true,
+        stars: true,
+        nebulae: true,
+        sun: true,
+        resolution: 1024,
+        animationSpeed: 1.0,
+    };
 
     private skybox!: Skybox;
     private space!: Space3D;
 
-    async ngOnInit() {
+    ngOnInit() {
         // Load param values from the URL
         // the await is important : tweakpane init needs the params object to be set
         // the firstValueFrom is also important : we can't have the params be reassigned
         // otherwise tweakpane will fail
-        await firstValueFrom(this.route.queryParamMap).then((queryParams) => {
-            const seed = queryParams.has("seed") ?
-                queryParams.get("seed")! :
-                generateRandomSeed();
+        this.route.queryParamMap.subscribe((queryParams) => {
+            if (queryParams.has("seed")) {
+                this.params.seed = queryParams.get("seed")!;
+            }
 
-            const fov = queryParams.has("fov") ?
-                +queryParams.get("fov")! || 60.0 : 60.0;
+            let fov: number;
+            if (queryParams.has("fov") && !isNaN(fov = +queryParams.get("fov")!)) {
+                this.params.fov = fov;
+            }
 
-            const pointStars = queryParams.has("pointStars") ?
-                queryParams.get("pointStars") === "true" : true;
-            const stars = queryParams.has("stars") ?
-                queryParams.get("stars") === "true" : true;
-            const nebulae = queryParams.has("nebulae") ?
-                queryParams.get("nebulae") === "true" : true;
-            const sun = queryParams.has("sun") ?
-                queryParams.get("sun") === "true" : true;
+            if (queryParams.has("pointStars")) {
+                this.params.pointStars = queryParams.get("pointStars") === "true";
+            }
+            if (queryParams.has("stars")) {
+                this.params.stars = queryParams.get("stars") === "true";
+            }
+            if (queryParams.has("nebulae")) {
+                this.params.nebulae = queryParams.get("nebulae") === "true";
+            }
+            if (queryParams.has("sun")) {
+                this.params.sun = queryParams.get("sun") === "true";
+            }
 
-            const resolution = parseInt(queryParams.get("resolution")!) || 1024;
-            const animationSpeed = parseFloat(queryParams.get("animationSpeed")!) || 1.0;
+            let resolution: number;
+            if (queryParams.has("resolution") && (resolution = parseInt(queryParams.get("resolution")!)) > 0) {
+                this.params.resolution = resolution;
+            }
 
-            this.params = {
-                seed,
-                fov,
-                pointStars,
-                stars,
-                nebulae,
-                sun,
-                resolution,
-                animationSpeed,
-            };
+            let animationSpeed: number;
+            if (queryParams.has("animationSpeed") && !isNaN(animationSpeed = parseFloat(queryParams.get("animationSpeed")!))) {
+                this.params.animationSpeed = animationSpeed;
+            }
+
+            this.pane?.refresh();
         });
 
         this.initTweakpanePane();
