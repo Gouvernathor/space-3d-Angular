@@ -327,9 +327,7 @@ function quadRotBetweenVecs(a: glm.ReadonlyVec3, b: glm.ReadonlyVec3) {
     const omega = glm.vec3.create();
     glm.vec3.cross(omega, a, b);
     glm.vec3.normalize(omega, omega);
-    const rot = glm.quat.create();
-    glm.quat.setAxisAngle(rot, omega, theta);
-    return rot;
+    return glm.quat.setAxisAngle(glm.quat.create(), omega, theta);
 }
 
 function quadRotFromForward(forward: glm.ReadonlyVec3) {
@@ -338,16 +336,15 @@ function quadRotFromForward(forward: glm.ReadonlyVec3) {
 
 function randomRotation(rand: MersenneTwister) {
     const rot = glm.mat4.create();
-    glm.mat4.rotateX(rot, rot, rand.random() * Math.PI * 2);
-    glm.mat4.rotateY(rot, rot, rand.random() * Math.PI * 2);
-    glm.mat4.rotateZ(rot, rot, rand.random() * Math.PI * 2);
+    glm.mat4.rotateX(rot, rot, rand.uniform(Math.PI * 2));
+    glm.mat4.rotateY(rot, rot, rand.uniform(Math.PI * 2));
+    glm.mat4.rotateZ(rot, rot, rand.uniform(Math.PI * 2));
     return rot;
 }
 
 function randomVec3(rand: MersenneTwister) {
-    const v = [0, 0, 1] as [number, number, number];
-    const rot = randomRotation(rand);
-    glm.vec3.transformMat4(v, v, rot);
+    const v = glm.vec3.fromValues(0, 0, 1);
+    glm.vec3.transformMat4(v, v, randomRotation(rand));
     glm.vec3.normalize(v, v);
     return v;
 }
