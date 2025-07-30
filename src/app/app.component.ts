@@ -5,7 +5,7 @@ import * as glm from 'gl-matrix';
 import generateRandomSeed from '../util/generateRandomSeed';
 import Skybox from '../lib/skybox';
 import Space3D from '../lib/space3d';
-import { SideName } from '../lib/constants';
+import { sideNames } from '../lib/constants';
 import AnimationFrameManager from '../util/animationFrameManager';
 
 @Component({
@@ -190,21 +190,14 @@ export class AppComponent {
         });
         this.skybox.setTextures(textures);
 
-        this.drawIndividual(textures.left, "left");
-        this.drawIndividual(textures.right, "right");
-        this.drawIndividual(textures.front, "front");
-        this.drawIndividual(textures.back, "back");
-        this.drawIndividual(textures.top, "top");
-        this.drawIndividual(textures.bottom, "bottom");
+        for (const side of sideNames) {
+            const target = this.canvasses[side]();
+            target.width = target.height = this.params.resolution;
+            const ctx = target.getContext("2d")!;
+            ctx.drawImage(textures[side], 0, 0);
+        }
 
         this.animationFrameManager.scheduleRender();
-    }
-
-    private drawIndividual(source: HTMLCanvasElement, targetId: SideName) {
-        const canvas = this.canvasses[targetId]();
-        canvas.width = canvas.height = this.params.resolution;
-        const ctx = canvas.getContext("2d")!;
-        ctx.drawImage(source, 0, 0);
     }
 
     private readonly animationFrameManager = new AnimationFrameManager((t) => this.render(t));
