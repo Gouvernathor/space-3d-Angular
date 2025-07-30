@@ -131,12 +131,12 @@ export class AppComponent {
     private pane!: Pane;
 
     private initTweakpanePane() {
-        const pane = this.pane = new Pane();
+        const pane = this.pane = new Pane({
+            title: "", // enables a toggle bar
+        });
         pane.element.style.position = "fixed";
         pane.element.style.left = "16px";
         pane.element.style.top = "272px";
-
-        // TODO add a toggle for the pane display
 
         pane.addBinding(this.params, "seed", { label: "Seed" });
 
