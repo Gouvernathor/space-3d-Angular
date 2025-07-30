@@ -170,11 +170,13 @@ export class AppComponent {
         pane.addBinding(this.params, "animate", { label: "Animate" }).on("change", () => {
             if (this.params.animate) {
                 this.animationFrameManager.scheduleRender();
+                // calculate a fake new epoch such that the current position is the same
+                this.animationEpoch = performance.now() - (this.lastPosition||0)/(this.params.animationSpeed*AppComponent.ANIMATION_SPEED_FACTOR);
             } else {
                 this.animationFrameManager.stopRenderLoop();
             }
         });
-        pane.addBinding(this.params, "animationSpeed", { label: "Animation Speed", min: .000001, max: 10 }).on("change", (e) => {
+        pane.addBinding(this.params, "animationSpeed", { label: "Animation Speed", min: .000001, max: 10 }).on("change", () => {
             if (this.lastPosition !== null) {
                 // calculate a fake new epoch resulting in the same position
                 this.animationEpoch = performance.now() - (this.lastPosition||0)/(this.params.animationSpeed*AppComponent.ANIMATION_SPEED_FACTOR);
