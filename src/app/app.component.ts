@@ -1,7 +1,11 @@
 import { Component, computed, ElementRef, viewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Pane } from 'tweakpane';
+import * as glm from 'gl-matrix';
 import generateRandomSeed from '../util/generateRandomSeed';
+import Skybox from '../lib/skybox';
+import Space3D from '../lib/space3d';
+import { SideName } from '../lib/constants';
 
 type ControlParams = {
     seed: string;
@@ -28,6 +32,8 @@ export class AppComponent {
         private readonly router: Router,
     ) {}
 
+    renderCanvasRef = viewChild.required<ElementRef<HTMLCanvasElement>>('rendercanvas');
+    renderCanvas = computed(() => this.renderCanvasRef().nativeElement);
     leftRef = viewChild.required<ElementRef<HTMLCanvasElement>>('left');
     rightRef = viewChild.required<ElementRef<HTMLCanvasElement>>('right');
     topRef = viewChild.required<ElementRef<HTMLCanvasElement>>('top');
@@ -44,6 +50,9 @@ export class AppComponent {
     };
 
     params!: ControlParams;
+
+    private skybox!: Skybox;
+    private space!: Space3D;
 
     async ngOnInit() {
         // Load param values from the URL
@@ -80,8 +89,17 @@ export class AppComponent {
         });
 
         this.initTweakpanePane();
-        // await animationFrame();
-        // await this.scene.render(this.params);
+
+        const renderCanvas = this.renderCanvas();
+        renderCanvas.width = renderCanvas.clientWidth;
+        renderCanvas.height = renderCanvas.clientHeight;
+
+        this.skybox = new Skybox(renderCanvas);
+        this.space = new Space3D();
+
+        this.renderTextures();
+
+        this.render();
     }
 
     private updateParams() {
@@ -100,10 +118,6 @@ export class AppComponent {
         this.renderTextures();
     }
 
-    renderTextures() {
-        // TODO
-    }
-
     // Tweakpane options pane
 
     private pane!: Pane;
@@ -113,6 +127,8 @@ export class AppComponent {
         pane.element.style.position = "fixed";
         pane.element.style.left = "16px";
         pane.element.style.top = "272px";
+
+        // TODO add a toggle for the pane display
 
         pane.addBinding(this.params, "seed", { label: "Seed" });
 
@@ -142,5 +158,61 @@ export class AppComponent {
         });
         // pane.addButton({ title: "Download skybox" })
         //     .on("click", () => this.downloadSkybox());
+    }
+
+    private renderTextures() {
+        const textures = this.space.render({
+            seed: this.params.seed,
+            pointStars: this.params.pointStars,
+            stars: this.params.stars,
+            nebulae: this.params.nebulae,
+            sun: this.params.sun,
+            resolution: this.params.resolution,
+        });
+        this.skybox.setTextures(textures);
+
+        this.drawIndividual(textures.left, "left");
+        this.drawIndividual(textures.right, "right");
+        this.drawIndividual(textures.front, "front");
+        this.drawIndividual(textures.back, "back");
+        this.drawIndividual(textures.top, "top");
+        this.drawIndividual(textures.bottom, "bottom");
+    }
+
+    private drawIndividual(source: HTMLCanvasElement, targetId: SideName) {
+        const canvas = this.canvasses[targetId]();
+        canvas.width = canvas.height = this.params.resolution;
+        const ctx = canvas.getContext("2d")!;
+        ctx.drawImage(source, 0, 0);
+    }
+
+    private tick = 0;
+
+    private render() {
+        this.tick += .0025 * this.params.animationSpeed;
+
+        const view = glm.mat4.create();
+        const projection = glm.mat4.create();
+
+        const renderCanvas = this.renderCanvas();
+        renderCanvas.width = renderCanvas.clientWidth;
+        renderCanvas.height = renderCanvas.clientHeight;
+
+        glm.mat4.lookAt(view,
+            [0, 0, 0],
+            [Math.cos(this.tick), Math.sin(this.tick*.555), Math.sin(this.tick)],
+            [0, 1, 0]);
+
+        const fov = (this.params.fov / 180) * Math.PI;
+        glm.mat4.perspective(projection,
+            fov,
+            renderCanvas.width / renderCanvas.height,
+            0.1, 8);
+
+        this.skybox.render(view, projection);
+
+        requestAnimationFrame(() => this.render());
+
+        // this.updateParams();
     }
 }

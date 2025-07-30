@@ -17,7 +17,7 @@ type RenderParams = {
 
     pointStars: boolean;
     stars: boolean;
-    nebula: boolean;
+    nebulae: boolean;
     sun: boolean;
 };
 
@@ -132,7 +132,7 @@ export default class Space3D {
             offset: glm.ReadonlyVec3,
         };
         const nebulaParams: NebulaParams[] = [];
-        if (params.nebula) {
+        if (params.nebulae) {
             do {
                 nebulaParams.push({
                     scale: rand.uniform(0.25, 0.75),
