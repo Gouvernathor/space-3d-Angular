@@ -92,6 +92,9 @@ export class AppComponent {
                 this.params.animationSpeed = animationSpeed;
             }
 
+            const displayUI = !queryParams.has("noGUI") || queryParams.get("noGUI")! === "false";
+            this.displayUI(displayUI);
+
             this.pane?.refresh();
         });
 
@@ -107,7 +110,17 @@ export class AppComponent {
         this.renderTextures();
     }
 
-    private updateParams() {
+    private displayUI(doDisplay: boolean) {
+        if (this.pane) {
+            this.pane.element.hidden = !doDisplay;
+        }
+
+        for (const canvas of Object.values(this.canvasses)) {
+            canvas().hidden = !doDisplay;
+        }
+    }
+
+    private updateURL() {
         this.router.navigate([], {
             queryParams: this.params,
             replaceUrl: true,
@@ -120,7 +133,7 @@ export class AppComponent {
 
     // Tweakpane options pane
 
-    private pane!: Pane;
+    private pane?: Pane;
 
     private initTweakpanePane() {
         const pane = this.pane = new Pane({
@@ -172,7 +185,7 @@ export class AppComponent {
         });
 
         pane.addButton({ title: "Copy (to) URL" }).on("click", () => {
-            this.updateParams();
+            this.updateURL();
             this.copyUrlToClipboard();
         });
         // pane.addButton({ title: "Download skybox" })
