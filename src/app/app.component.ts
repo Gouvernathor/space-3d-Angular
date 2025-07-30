@@ -6,6 +6,7 @@ import generateRandomSeed from '../util/generateRandomSeed';
 import Skybox from '../lib/skybox';
 import Space3D from '../lib/space3d';
 import { SideName } from '../lib/constants';
+import AnimationFrameManager from '../util/animationFrameManager';
 
 type ControlParams = {
     seed: string;
@@ -151,7 +152,7 @@ export class AppComponent {
         });
 
         pane.addBinding(this.params, "fov", { label: "Field of View °", min: 10, max: 150, step: 1 })
-            .on("change", () => this.scheduleRender());
+            .on("change", () => this.animationFrameManager.scheduleRender());
 
         pane.addBinding(this.params, "pointStars", { label: "Point Stars" })
             .on("change", () => this.renderTextures());
@@ -168,9 +169,9 @@ export class AppComponent {
 
         pane.addBinding(this.params, "animate", { label: "Animate" }).on("change", () => {
             if (this.params.animate) {
-                this.scheduleRender();
+                this.animationFrameManager.scheduleRender();
             } else {
-                this.stopRenderLoop();
+                this.animationFrameManager.stopRenderLoop();
             }
         });
         pane.addBinding(this.params, "animationSpeed", { label: "Animation Speed", min: 0, max: 10 });
@@ -201,7 +202,7 @@ export class AppComponent {
         this.drawIndividual(textures.top, "top");
         this.drawIndividual(textures.bottom, "bottom");
 
-        this.scheduleRender();
+        this.animationFrameManager.scheduleRender();
     }
 
     private drawIndividual(source: HTMLCanvasElement, targetId: SideName) {
@@ -211,17 +212,8 @@ export class AppComponent {
         ctx.drawImage(source, 0, 0);
     }
 
-    private animationFrameHandle: number|null = null;
-    private stopRenderLoop() {
-        if (this.animationFrameHandle !== null) {
-            cancelAnimationFrame(this.animationFrameHandle);
-            this.animationFrameHandle = null;
-        }
-    }
-    private scheduleRender() {
-        this.stopRenderLoop();
-        this.animationFrameHandle = requestAnimationFrame(() => this.render());
-    }
+    private readonly animationFrameManager = new AnimationFrameManager(() => this.render());
+
     private animationTime = 0;
     private render() {
         const view = glm.mat4.create();
@@ -246,7 +238,7 @@ export class AppComponent {
 
         if (this.params.animate) {
             this.animationTime += .0025 * this.params.animationSpeed;
-            this.scheduleRender();
+            this.animationFrameManager.scheduleRender();
         }
     }
 }
