@@ -212,10 +212,15 @@ export class AppComponent {
         ctx.drawImage(source, 0, 0);
     }
 
-    private readonly animationFrameManager = new AnimationFrameManager(() => this.render());
+    private readonly animationFrameManager = new AnimationFrameManager((t) => this.render(t));
 
-    private animationTime = 0;
-    private render() {
+    private animationEpoch: number|null = null;
+    private lastPosition: number|null = null;
+    private static readonly ANIMATION_SPEED_FACTOR = .00025;
+    private computePosition(nowTimestamp: number, epoch: number): number {
+        return (nowTimestamp - epoch) * this.params.animationSpeed*AppComponent.ANIMATION_SPEED_FACTOR;
+    }
+    private render(nowTimestamp: number) {
         const view = glm.mat4.create();
         const projection = glm.mat4.create();
 
@@ -223,9 +228,13 @@ export class AppComponent {
         renderCanvas.width = renderCanvas.clientWidth;
         renderCanvas.height = renderCanvas.clientHeight;
 
+        const position = this.lastPosition = this.params.animate ?
+            this.computePosition(nowTimestamp, (this.animationEpoch ??= nowTimestamp)) :
+            (this.lastPosition ?? this.computePosition(0, 0));
+
         glm.mat4.lookAt(view,
             [0, 0, 0],
-            [Math.cos(this.animationTime), Math.sin(this.animationTime*.555), Math.sin(this.animationTime)],
+            [Math.cos(position), Math.sin(position*.555), Math.sin(position)],
             [0, 1, 0]);
 
         const fov = (this.params.fov / 180) * Math.PI;
@@ -237,7 +246,6 @@ export class AppComponent {
         this.skybox.render(view, projection);
 
         if (this.params.animate) {
-            this.animationTime += .0025 * this.params.animationSpeed;
             this.animationFrameManager.scheduleRender();
         }
     }
