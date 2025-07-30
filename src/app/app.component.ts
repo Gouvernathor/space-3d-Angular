@@ -52,7 +52,7 @@ export class AppComponent {
 
     private readonly params: ControlParams = {
         seed: generateRandomSeed(),
-        fov: 60,
+        fov: 30,
         pointStars: true,
         stars: true,
         nebulae: true,
