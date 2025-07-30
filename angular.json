@@ -17,7 +17,7 @@
         "build": {
           "builder": "@angular-devkit/build-angular:application",
           "options": {
-            "outputPath": "dist/space-3-d",
+            "outputPath": "dist/space-3d",
             "index": "src/index.html",
             "browser": "src/main.ts",
             "polyfills": [
