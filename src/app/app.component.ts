@@ -117,11 +117,6 @@ export class AppComponent {
         // TODO
     }
 
-    randomSeed() {
-        this.params.seed = generateRandomSeed();
-        this.renderTextures();
-    }
-
     // Tweakpane options pane
 
     private pane!: Pane;
@@ -136,8 +131,11 @@ export class AppComponent {
 
         pane.addBinding(this.params, "seed", { label: "Seed" });
 
-        pane.addButton({ title: "Randomize seed" })
-            .on("click", () => this.randomSeed());
+        pane.addButton({ title: "Randomize seed" }).on("click", () => {
+            this.params.seed = generateRandomSeed();
+            pane.refresh();
+            this.renderTextures();
+        });
 
         pane.addBinding(this.params, "fov", { label: "Field of View °", min: 10, max: 150, step: 1 });
 
