@@ -116,8 +116,6 @@ export class AppComponent {
         this.space = new Space3D();
 
         this.renderTextures();
-
-        this.render();
     }
 
     private updateParams() {
@@ -168,7 +166,9 @@ export class AppComponent {
 
         pane.addBinding(this.params, "animate", { label: "Animate" }).on("change", () => {
             if (this.params.animate) {
-                this.render();
+                this.scheduleRender();
+            } else {
+                this.stopRenderLoop();
             }
         });
         pane.addBinding(this.params, "animationSpeed", { label: "Animation Speed", min: 0, max: 10 });
@@ -198,6 +198,8 @@ export class AppComponent {
         this.drawIndividual(textures.back, "back");
         this.drawIndividual(textures.top, "top");
         this.drawIndividual(textures.bottom, "bottom");
+
+        this.scheduleRender();
     }
 
     private drawIndividual(source: HTMLCanvasElement, targetId: SideName) {
@@ -207,6 +209,17 @@ export class AppComponent {
         ctx.drawImage(source, 0, 0);
     }
 
+    private animationFrameHandle: number|null = null;
+    private stopRenderLoop() {
+        if (this.animationFrameHandle !== null) {
+            cancelAnimationFrame(this.animationFrameHandle);
+            this.animationFrameHandle = null;
+        }
+    }
+    private scheduleRender() {
+        this.stopRenderLoop();
+        this.animationFrameHandle = requestAnimationFrame(() => this.render());
+    }
     private animationTime = 0;
     private render() {
         const view = glm.mat4.create();
@@ -231,7 +244,8 @@ export class AppComponent {
 
         if (this.params.animate) {
             this.animationTime += .0025 * this.params.animationSpeed;
-            requestAnimationFrame(() => this.render());
+            // requestAnimationFrame(() => this.render());
+            this.scheduleRender();
         }
     }
 }
