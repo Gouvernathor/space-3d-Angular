@@ -65,9 +65,6 @@ export class AppComponent {
 
     ngOnInit() {
         // Load param values from the URL
-        // the await is important : tweakpane init needs the params object to be set
-        // the firstValueFrom is also important : we can't have the params be reassigned
-        // otherwise tweakpane will fail
         this.route.queryParamMap.subscribe((queryParams) => {
             if (queryParams.has("seed")) {
                 this.params.seed = queryParams.get("seed")!;
