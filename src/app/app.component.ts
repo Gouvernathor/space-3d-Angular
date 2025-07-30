@@ -1,8 +1,11 @@
 import { Component, computed, ElementRef, viewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { Pane } from 'tweakpane';
+import generateRandomSeed from '../util/generateRandomSeed';
 
 type ControlParams = {
     seed: string;
+    fov: number;
     pointStars: boolean;
     stars: boolean;
     nebulae: boolean;
@@ -42,14 +45,15 @@ export class AppComponent {
 
     params!: ControlParams;
 
-    // Load param values from the URL
     async ngOnInit() {
+        // Load param values from the URL
         this.route.queryParamMap.subscribe(queryParams => {
-            const hasParams = queryParams.keys.length > 0;
-
             const seed = queryParams.has("seed") ?
                 queryParams.get("seed")! :
-                ""; // generateRandomSeed();
+                generateRandomSeed();
+
+            const fov = queryParams.has("fov") ?
+                +queryParams.get("fov")! || 60.0 : 60.0;
 
             const pointStars = queryParams.has("pointStars") ?
                 queryParams.get("pointStars") === "true" : true;
@@ -65,6 +69,7 @@ export class AppComponent {
 
             this.params = {
                 seed,
+                fov,
                 pointStars,
                 stars,
                 nebulae,
@@ -73,6 +78,10 @@ export class AppComponent {
                 animationSpeed,
             };
         });
+
+        this.initTweakpanePane();
+        // await animationFrame();
+        // await this.scene.render(this.params);
     }
 
     private updateParams() {
@@ -81,5 +90,57 @@ export class AppComponent {
             replaceUrl: true,
             relativeTo: this.route,
         });
+    }
+    private copyUrlToClipboard() {
+        // TODO
+    }
+
+    randomSeed() {
+        this.params.seed = generateRandomSeed();
+        this.renderTextures();
+    }
+
+    renderTextures() {
+        // TODO
+    }
+
+    // Tweakpane options pane
+
+    private pane!: Pane;
+
+    private initTweakpanePane() {
+        const pane = this.pane = new Pane();
+        pane.element.style.position = "fixed";
+        pane.element.style.left = "16px";
+        pane.element.style.top = "272px";
+
+        pane.addBinding(this.params, "seed", { label: "Seed" });
+
+        pane.addButton({ title: "Randomize seed" })
+            .on("click", () => this.randomSeed());
+
+        pane.addBinding(this.params, "fov", { label: "Field of View °", min: 10, max: 150, step: 1 });
+
+        pane.addBinding(this.params, "pointStars", { label: "Point Stars" })
+            .on("change", () => this.renderTextures());
+        pane.addBinding(this.params, "stars", { label: "Bright Stars" })
+            .on("change", () => this.renderTextures());
+        pane.addBinding(this.params, "nebulae", { label: "Nebulae" })
+            .on("change", () => this.renderTextures());
+        pane.addBinding(this.params, "sun", { label: "Sun" })
+            .on("change", () => this.renderTextures());
+
+        pane.addBinding(this.params, "resolution", { label: "Resolution",
+                options: { 256:256, 512:512, 1024:1024, 2048:2048, 4096:4096 }
+        }).on("change", () => this.renderTextures());
+
+        pane.addBinding(this.params, "animationSpeed", { label: "Animation Speed", min: 0, max: 10 });
+
+        pane.addButton({ title: "Copy (to) URL" }).on("click", () => {
+            this.updateParams();
+            this.copyUrlToClipboard();
+        });
+        // pane.addButton({ title: "Download skybox" })
+        //     .on("click", () => this.downloadSkybox());
     }
 }

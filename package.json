@@ -22,12 +22,14 @@
     "gl-matrix": "^3.4.3",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
+    "tweakpane": "^4.0.5",
     "zone.js": "~0.15.0"
   },
   "devDependencies": {
     "@angular-devkit/build-angular": "^19.0.7",
     "@angular/cli": "^19.0.7",
     "@angular/compiler-cli": "^19.0.0",
+    "@tweakpane/core": "^2.0.5",
     "@types/jasmine": "~5.1.0",
     "jasmine-core": "~5.4.0",
     "karma": "~6.4.0",
