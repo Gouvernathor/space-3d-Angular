@@ -197,10 +197,9 @@ export class AppComponent {
         ctx.drawImage(source, 0, 0);
     }
 
-    private tick = 0;
-
+    private animationTime = 0;
     private render() {
-        this.tick += .0025 * this.params.animationSpeed;
+        this.animationTime += .0025 * this.params.animationSpeed;
 
         const view = glm.mat4.create();
         const projection = glm.mat4.create();
@@ -211,7 +210,7 @@ export class AppComponent {
 
         glm.mat4.lookAt(view,
             [0, 0, 0],
-            [Math.cos(this.tick), Math.sin(this.tick*.555), Math.sin(this.tick)],
+            [Math.cos(this.animationTime), Math.sin(this.animationTime*.555), Math.sin(this.animationTime)],
             [0, 1, 0]);
 
         const fov = (this.params.fov / 180) * Math.PI;
