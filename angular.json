@@ -34,7 +34,11 @@
             "styles": [
               "src/styles.scss"
             ],
-            "scripts": []
+            "scripts": [],
+            "loader": {
+              ".snip": "text",
+              ".glsl": "text"
+            }
           },
           "configurations": {
             "production": {
