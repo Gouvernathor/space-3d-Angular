@@ -96,6 +96,8 @@ export class AppComponent {
             this.displayUI(displayUI);
 
             this.pane?.refresh();
+
+            this.renderTextures();
         });
 
         this.initTweakpanePane();
@@ -106,8 +108,6 @@ export class AppComponent {
 
         this.skybox = new Skybox(renderCanvas);
         this.space = new Space3D();
-
-        this.renderTextures();
     }
 
     private displayUI(doDisplay: boolean) {
