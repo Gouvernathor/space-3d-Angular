@@ -6,9 +6,9 @@ import * as webgl from "./webgl";
 import skyboxGlsl from "./glsl/skybox.glsl";
 
 export default class Skybox {
-    private gl: WebGLRenderingContext;
-    private pSkybox: webgl.Program;
-    private rSkybox: webgl.Renderable;
+    private readonly gl: WebGLRenderingContext;
+    private readonly pSkybox: webgl.Program;
+    private readonly rSkybox: webgl.Renderable;
     private textures: Record<SideName, webgl.Texture>|null = null;
 
     constructor(

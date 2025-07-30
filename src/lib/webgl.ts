@@ -1,11 +1,7 @@
 class GLBuffer {
-    private buffer: WebGLBuffer|null = null;
+    private readonly buffer: WebGLBuffer|null = null;
 
-    constructor(private gl: WebGLRenderingContext) {
-        this.initialize();
-    }
-
-    private initialize() {
+    constructor(private readonly gl: WebGLRenderingContext) {
         this.buffer = this.gl.createBuffer();
     }
 
@@ -33,12 +29,12 @@ interface _T1 {
 }
 
 export class Program {
-    private program: WebGLProgram;
-    public readonly attribs: Record<string, _T0>;
-    private uniforms: Record<string, _T1>;
+    private readonly program: WebGLProgram;
+    public readonly attribs: { readonly [K: string]: _T0 };
+    private readonly uniforms: { readonly [K: string]: _T1 };
 
     constructor(
-        private gl: WebGLRenderingContext,
+        private readonly gl: WebGLRenderingContext,
         vertexShaderSource: string,
         fragmentShaderSource: string,
     ) {
@@ -145,10 +141,10 @@ export function buildAttribs<K extends string>(
 
 export class Renderable {
     constructor(
-        private gl: WebGLRenderingContext,
-        private program: Program,
-        private attribs: Record<string, Attrib>,
-        private primitiveCount: number,
+        private readonly gl: WebGLRenderingContext,
+        private readonly program: Program,
+        private readonly attribs: Record<string, Attrib>,
+        private readonly primitiveCount: number,
     ) {}
 
     public render() {
@@ -187,15 +183,15 @@ function defaultTextureOptions(gl: WebGLRenderingContext, {
     return { target, mag, min, wraps, wrapt, internalFormat, format, type };
 }
 export class Texture {
-    texture: WebGLTexture;
-    options: ReturnType<typeof defaultTextureOptions>;
+    private readonly texture: WebGLTexture;
+    private readonly options: ReturnType<typeof defaultTextureOptions>;
 
     constructor(
-        private gl: WebGLRenderingContext,
-        private index: number,
-        private data: HTMLCanvasElement,
-        private width: number,
-        private height: number,
+        private readonly gl: WebGLRenderingContext,
+        private readonly index: number,
+        private readonly data: HTMLCanvasElement,
+        private readonly width: number,
+        private readonly height: number,
         options = {},
     ) {
         this.options = defaultTextureOptions(gl, options);

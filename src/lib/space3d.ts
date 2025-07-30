@@ -22,16 +22,16 @@ type RenderParams = {
 };
 
 export default class Space3D {
-    private canvas: HTMLCanvasElement;
-    private gl: WebGLRenderingContext;
-    private pNebula: webgl.Program;
-    private pPointStars: webgl.Program;
-    private pStar: webgl.Program;
-    private pSun: webgl.Program;
-    private rPointStars: webgl.Renderable;
-    private rNebula: webgl.Renderable;
-    private rStar: webgl.Renderable;
-    private rSun: webgl.Renderable;
+    private readonly canvas: HTMLCanvasElement;
+    private readonly gl: WebGLRenderingContext;
+    private readonly pNebula: webgl.Program;
+    private readonly pPointStars: webgl.Program;
+    private readonly pStar: webgl.Program;
+    private readonly pSun: webgl.Program;
+    private readonly rPointStars: webgl.Renderable;
+    private readonly rNebula: webgl.Renderable;
+    private readonly rStar: webgl.Renderable;
+    private readonly rSun: webgl.Renderable;
 
     constructor() {
         // Offscreen rendering canvas
@@ -199,7 +199,6 @@ export default class Space3D {
         };
 
         // model, view, and projection matrices
-        const model = glm.mat4.create();
         const view = glm.mat4.create();
         const projection = glm.mat4.create();
         glm.mat4.perspective(projection, Math.PI / 2, 1, .1, 256);
