@@ -131,9 +131,9 @@ export function buildAttribs<K extends string>(
 ) {
     const attribs: { [P in K]: Attrib } = {} as any;
     for (const key in layout) {
-        attribs[key as K] = {
+        attribs[key] = {
             buffer: new GLBuffer(gl),
-            size: layout[key as K],
+            size: layout[key],
         };
     }
     return attribs;
