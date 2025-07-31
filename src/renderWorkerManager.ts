@@ -12,8 +12,21 @@ export function newWorkerManager(
 ): RenderWorkManager {
     if (typeof Worker !== 'undefined') {
         const worker = new Worker(new URL('./app/app.worker', import.meta.url));
-        const offscreen = renderCanvas.transferControlToOffscreen();
-        worker.postMessage({ command: "init", renderCanvas: offscreen }, [offscreen]);
+
+        { // Initialize the worker
+            const transferableArray: Transferable[] = [];
+            const offscreen = renderCanvas.transferControlToOffscreen();
+            transferableArray.push(offscreen);
+            const offscreenCanvasses: { [K in SideName]: OffscreenCanvas } = {} as any;
+            for (const side of sideNames) {
+                offscreenCanvasses[side] = canvasses[side].transferControlToOffscreen();
+                transferableArray.push(offscreenCanvasses[side]);
+            }
+
+            worker.postMessage({ command: "init",
+                renderCanvas: offscreen, canvasses: offscreenCanvasses
+            }, transferableArray);
+        }
 
         worker.addEventListener("message", ({ data }) => {
             if (data.message) {

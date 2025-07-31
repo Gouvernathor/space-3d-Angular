@@ -1,13 +1,64 @@
 /// <reference lib="webworker" />
 
+import { SideName, sideNames } from "../lib/constants";
+import Skybox from "../lib/skybox";
+import Space3D from "../lib/space3d";
+
+const space = new Space3D();
+let skybox: Skybox;
+let canvasses: { [K in SideName]: OffscreenCanvas };
+
 addEventListener("message", ({ data: { command, ...data } }) => {
-    if (command === "renderSpace") {
-        postMessage("renderSpace not implemented");
-    } else if (command === "renderSkybox") {
-        postMessage("renderSkybox not implemented");
-    } else if (command === "setSkyboxTextures") {
-        postMessage("setSkyboxTextures not implemented");
-    } else {
-        postMessage(`Unknown command: ${command}`);
+    switch (command) {
+        case "init": {
+            if (skybox || canvasses) {
+                throw new Error("Worker already initialized");
+            }
+
+            const { renderCanvas, canvasses: receivedCanvasses } = data;
+            if (!(renderCanvas instanceof OffscreenCanvas)) {
+                throw new Error("Expected renderCanvas to be an OffscreenCanvas");
+            }
+
+            skybox = new Skybox(renderCanvas);
+            canvasses = receivedCanvasses;
+
+            postMessage("initialized"); // debugging only
+        } break;
+
+
+        case "renderTextures": {
+            // render space
+            const { id, params } = data;
+            const textures = space.render(params);
+
+            const transferableArray: Transferable[] = [];
+            for (const canvas of Object.values(textures)) {
+                transferableArray.push(canvas);
+            }
+
+            // set skybox textures
+            skybox.setTextures(textures);
+
+            // render the sides
+            for (const side of sideNames) {
+                const target = canvasses[side];
+                target.width = target.height = params.resolution;
+                const ctx = target.getContext("2d")!;
+                ctx.drawImage(textures[side], 0, 0);
+            }
+
+            postMessage({ id, message: "renderTextures completed" }, transferableArray);
+        } break;
+
+
+        case "renderSkybox": {
+            postMessage("renderSkybox not implemented");
+        } break;
+
+
+        default: {
+            postMessage(`Unknown command: ${command}`);
+        } break;
     }
 });
