@@ -5,7 +5,7 @@ import Space3D from "./lib/space3d";
 export interface RenderWorkManager {
     actuateRenderCanvasSize(clientWidth: number, clientHeight: number): Promise<void>|void;
     renderTextures(...p: Parameters<typeof Space3D.prototype.render>): Promise<void>|void;
-    readonly renderSkybox: typeof Skybox.prototype.render;
+    renderSkybox(...p: Parameters<typeof Skybox.prototype.render>): Promise<void>|void;
 }
 export function newWorkerManager(
     renderCanvas: HTMLCanvasElement,
@@ -51,7 +51,7 @@ export function newWorkerManager(
                     worker.addEventListener("message", listener);
                 });
 
-                // The worker will adjust the size of the render canvas based on the client size
+                // No transferable objects in this case
                 worker.postMessage({ command: "actuateRenderCanvasSize", id, clientWidth, clientHeight });
 
                 // Now wait for the response
@@ -79,6 +79,20 @@ export function newWorkerManager(
                 return prom;
             },
             renderSkybox: (view, projection) => {
+                // To avoid mixups between different render calls, we use a unique ID
+                const id = crypto.randomUUID();
+
+                // Prepare reception of the response
+                const prom = new Promise<void>((resolve) => {
+                    const listener = ({ data: { id: receivedId } }: MessageEvent) => {
+                        if (receivedId === id) {
+                            worker.removeEventListener("message", listener);
+                            resolve();
+                        }
+                    };
+                    worker.addEventListener("message", listener);
+                });
+
                 const transferableArray: Transferable[] = [];
                 for (const list of [view, projection]) {
                     if (list instanceof Float32Array) {
@@ -88,6 +102,9 @@ export function newWorkerManager(
                     }
                 }
                 worker.postMessage({ command: 'renderSkybox', view, projection }, transferableArray);
+
+                // Now wait for the response
+                return prom;
             },
         };
     } else {

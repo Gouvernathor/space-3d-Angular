@@ -209,10 +209,10 @@ export class AppComponent {
     private computePosition(nowTimestamp: number, epoch: number): number {
         return (nowTimestamp - epoch) * this.params.animationSpeed*AppComponent.ANIMATION_SPEED_FACTOR;
     }
-    private render(nowTimestamp: number) {
+    private async render(nowTimestamp: number) {
         // Actuating the canvas size
         const renderCanvas = this.renderCanvas();
-        this.renderWorkManager.actuateRenderCanvasSize(renderCanvas.clientWidth, renderCanvas.clientHeight);
+        await this.renderWorkManager.actuateRenderCanvasSize(renderCanvas.clientWidth, renderCanvas.clientHeight);
 
         // Creating the position matrix
         const position = this.lastPosition = this.params.animate ?
@@ -233,7 +233,7 @@ export class AppComponent {
             0.1, 8);
 
         // Rendering the skybox
-        this.renderWorkManager.renderSkybox(view, projection);
+        await this.renderWorkManager.renderSkybox(view, projection);
 
         // Setting up the next render pass
         if (this.params.animate) {
