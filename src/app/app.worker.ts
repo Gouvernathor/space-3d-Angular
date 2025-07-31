@@ -48,12 +48,15 @@ addEventListener("message", ({ data: { command, ...data } }) => {
                 ctx.drawImage(textures[side], 0, 0);
             }
 
-            postMessage({ id, message: "renderTextures completed" }, transferableArray);
+            postMessage({ id, message: "renderTextures completed" });
         } break;
 
 
         case "renderSkybox": {
-            postMessage("renderSkybox not implemented");
+            const { id, view, projection } = data;
+            skybox.render(view, projection);
+
+            postMessage({ id, message: "renderSkybox completed" });
         } break;
 
 
