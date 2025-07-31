@@ -51,10 +51,15 @@ export class AppComponent {
         animationSpeed: 1.0,
     };
 
-    private skybox!: Skybox;
-    private space!: Space3D;
+    private renderWorkManager!: RenderWorkManager;
 
     ngOnInit() {
+        const renderCanvas = this.renderCanvas();
+        renderCanvas.width = renderCanvas.clientWidth;
+        renderCanvas.height = renderCanvas.clientHeight;
+
+        this.renderWorkManager = newWorkerManager(renderCanvas);
+
         // Load param values from the URL
         this.route.queryParamMap.subscribe((queryParams) => {
             if (queryParams.has("seed")) {
@@ -101,13 +106,6 @@ export class AppComponent {
         });
 
         this.initTweakpanePane();
-
-        const renderCanvas = this.renderCanvas();
-        renderCanvas.width = renderCanvas.clientWidth;
-        renderCanvas.height = renderCanvas.clientHeight;
-
-        this.skybox = new Skybox(renderCanvas);
-        this.space = new Space3D();
     }
 
     private displayUI(doDisplay: boolean) {
@@ -192,8 +190,8 @@ export class AppComponent {
         //     .on("click", () => this.downloadSkybox());
     }
 
-    private renderTextures() {
-        const textures = this.space.render({
+    private async renderTextures() {
+        const textures = await this.renderWorkManager.renderSpace({
             seed: this.params.seed,
             pointStars: this.params.pointStars,
             stars: this.params.stars,
@@ -201,7 +199,7 @@ export class AppComponent {
             sun: this.params.sun,
             resolution: this.params.resolution,
         });
-        this.skybox.setTextures(textures);
+        const stProm = this.renderWorkManager.setSkyboxTextures(textures);
 
         for (const side of sideNames) {
             const target = this.canvasses[side]();
@@ -210,6 +208,7 @@ export class AppComponent {
             ctx.drawImage(textures[side], 0, 0);
         }
 
+        await stProm; // may not be necessary... but probably better
         this.animationFrameManager.scheduleRender();
     }
 
@@ -246,11 +245,83 @@ export class AppComponent {
             0.1, 8);
 
         // Rendering the skybox
-        this.skybox.render(view, projection);
+        this.renderWorkManager.renderSkybox(view, projection);
 
         // Setting up the next render pass
         if (this.params.animate) {
             this.animationFrameManager.scheduleRender();
         }
+    }
+}
+
+interface RenderWorkManager {
+    readonly renderSpace: (...p: Parameters<typeof Space3D.prototype.render>) => Promise<ReturnType<typeof Space3D.prototype.render>>|ReturnType<typeof Space3D.prototype.render>;
+    readonly setSkyboxTextures: typeof Skybox.prototype.setTextures;
+    readonly renderSkybox: typeof Skybox.prototype.render;
+}
+function newWorkerManager(renderCanvas: HTMLCanvasElement): RenderWorkManager {
+    // skybox setTextures render
+    // space render
+    if (typeof Worker !== 'undefined') {
+        const worker = new Worker(new URL('./app.worker', import.meta.url));
+        worker.addEventListener('message', ({ data }) => {
+            console.debug(`page got message (from worker): ${data}`);
+        });
+        return {
+            renderSpace: (params) => {
+                // To avoid mixups between different render calls, we use a unique ID
+                const id = crypto.randomUUID();
+
+                // Prepare reception of the response
+                const prom = new Promise<ReturnType<typeof Space3D.prototype.render>>((resolve) => {
+                    const listener = ({ data: { id: receivedId, return: canvasses } }: MessageEvent) => {
+                        if (receivedId === id) {
+                            worker.removeEventListener('message', listener);
+                            resolve(canvasses);
+                        }
+                    };
+                    worker.addEventListener("message", listener);
+                });
+
+                // No transferable objects in this case
+                worker.postMessage({ command: 'renderSpace', id, params });
+
+                // Now wait for the response
+                return prom;
+            },
+            setSkyboxTextures: (canvases) => {
+                const transferableArray: Transferable[] = [];
+                for (const canvas of Object.values(canvases)) {
+                    if (canvas instanceof HTMLCanvasElement) {
+                        const offscreen = canvas.transferControlToOffscreen();
+                        transferableArray.push(offscreen);
+                    } else {
+                        transferableArray.push(canvas);
+                    }
+                }
+                worker.postMessage({ command: 'setSkyboxTextures', canvases }, transferableArray);
+            },
+            renderSkybox: (view, projection) => {
+                const transferableArray: Transferable[] = [];
+                for (const list of [view, projection]) {
+                    if (list instanceof Float32Array) {
+                        if (list.buffer instanceof ArrayBuffer) {
+                            transferableArray.push(list.buffer);
+                        }
+                    }
+                }
+                worker.postMessage({ command: 'renderSkybox', view, projection }, transferableArray);
+            },
+        };
+    } else {
+        // Web Workers are not supported in this environment.
+        // You should add a fallback so that your program still executes correctly.
+        const space = new Space3D();
+        const skybox = new Skybox(renderCanvas);
+        return {
+            renderSpace: space.render.bind(space),
+            setSkyboxTextures: skybox.setTextures.bind(skybox),
+            renderSkybox: skybox.render.bind(skybox),
+        };
     }
 }
