@@ -264,7 +264,13 @@ function newWorkerManager(renderCanvas: HTMLCanvasElement): RenderWorkManager {
     // space render
     if (typeof Worker !== 'undefined') {
         const worker = new Worker(new URL('./app.worker', import.meta.url));
+        const offscreen = renderCanvas.transferControlToOffscreen();
+        worker.postMessage({ command: "init", renderCanvas: offscreen }, [offscreen]);
+
         worker.addEventListener('message', ({ data }) => {
+            if (data.message) {
+                data = data.message;
+            }
             console.debug(`page got message (from worker): ${data}`);
         });
         return {
@@ -284,7 +290,7 @@ function newWorkerManager(renderCanvas: HTMLCanvasElement): RenderWorkManager {
                 });
 
                 // No transferable objects in this case
-                worker.postMessage({ command: 'renderSpace', id, params });
+                worker.postMessage({ command: 'renderSpace', id, params }, []);
 
                 // Now wait for the response
                 return prom;
