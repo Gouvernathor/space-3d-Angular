@@ -12,7 +12,7 @@ export default class Skybox {
     private textures: { [K in SideName]: webgl.Texture }|null = null;
 
     constructor(
-        private renderCanvas: HTMLCanvasElement,
+        private renderCanvas: Canvas,
     ) {
         this.gl = renderCanvas.getContext("webgl")!;
         this.gl.pixelStorei(this.gl.UNPACK_FLIP_Y_WEBGL, true);
