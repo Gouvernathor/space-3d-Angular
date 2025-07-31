@@ -1,48 +1,28 @@
+import { SideName, sideNames } from "./lib/constants";
 import Skybox from "./lib/skybox";
 import Space3D from "./lib/space3d";
 
 export interface RenderWorkManager {
-    readonly renderSpace: (...p: Parameters<typeof Space3D.prototype.render>) => Promise<ReturnType<typeof Space3D.prototype.render>>|ReturnType<typeof Space3D.prototype.render>;
-    readonly setSkyboxTextures: (...p: Parameters<typeof Skybox.prototype.setTextures>) => Promise<ReturnType<typeof Skybox.prototype.setTextures>>|ReturnType<typeof Skybox.prototype.setTextures>;
+    renderTextures(...p: Parameters<typeof Space3D.prototype.render>): Promise<void>|void;
     readonly renderSkybox: typeof Skybox.prototype.render;
 }
-export function newWorkerManager(renderCanvas: HTMLCanvasElement): RenderWorkManager {
-    // skybox setTextures render
-    // space render
+export function newWorkerManager(
+    renderCanvas: HTMLCanvasElement,
+    canvasses: { readonly [K in SideName]: HTMLCanvasElement },
+): RenderWorkManager {
     if (typeof Worker !== 'undefined') {
         const worker = new Worker(new URL('./app/app.worker', import.meta.url));
         const offscreen = renderCanvas.transferControlToOffscreen();
         worker.postMessage({ command: "init", renderCanvas: offscreen }, [offscreen]);
 
-        worker.addEventListener('message', ({ data }) => {
+        worker.addEventListener("message", ({ data }) => {
             if (data.message) {
                 data = data.message;
             }
             console.debug(`page got message (from worker): ${data}`);
         });
         return {
-            renderSpace: (params) => {
-                // To avoid mixups between different render calls, we use a unique ID
-                const id = crypto.randomUUID();
-
-                // Prepare reception of the response
-                const prom = new Promise<ReturnType<typeof Space3D.prototype.render>>((resolve) => {
-                    const listener = ({ data: { id: receivedId, return: canvasses } }: MessageEvent) => {
-                        if (receivedId === id) {
-                            worker.removeEventListener('message', listener);
-                            resolve(canvasses);
-                        }
-                    };
-                    worker.addEventListener("message", listener);
-                });
-
-                // No transferable objects in this case
-                worker.postMessage({ command: 'renderSpace', id, params }, []);
-
-                // Now wait for the response
-                return prom;
-            },
-            setSkyboxTextures: (canvases) => {
+            renderTextures: (params) => {
                 // To avoid mixups between different render calls, we use a unique ID
                 const id = crypto.randomUUID();
 
@@ -57,16 +37,8 @@ export function newWorkerManager(renderCanvas: HTMLCanvasElement): RenderWorkMan
                     worker.addEventListener("message", listener);
                 });
 
-                const transferableArray: Transferable[] = [];
-                for (const canvas of Object.values(canvases)) {
-                    if (canvas instanceof HTMLCanvasElement) {
-                        const offscreen = canvas.transferControlToOffscreen();
-                        transferableArray.push(offscreen);
-                    } else {
-                        transferableArray.push(canvas);
-                    }
-                }
-                worker.postMessage({ command: 'setSkyboxTextures', id, canvases }, transferableArray);
+                // No transferable objects in this case
+                worker.postMessage({ command: "renderTextures", id, params }, []);
 
                 // Now wait for the response
                 return prom;
@@ -89,8 +61,19 @@ export function newWorkerManager(renderCanvas: HTMLCanvasElement): RenderWorkMan
         const space = new Space3D();
         const skybox = new Skybox(renderCanvas);
         return {
-            renderSpace: space.render.bind(space),
-            setSkyboxTextures: skybox.setTextures.bind(skybox),
+            // renderSpace: space.render.bind(space),
+            // setSkyboxTextures: skybox.setTextures.bind(skybox),
+            renderTextures: (params) => {
+                const textures = space.render(params);
+                skybox.setTextures(textures);
+
+                for (const side of sideNames) {
+                    const target = canvasses[side];
+                    target.width = target.height = params.resolution;
+                    const ctx = target.getContext("2d")!;
+                    ctx.drawImage(textures[side], 0, 0);
+                }
+            },
             renderSkybox: skybox.render.bind(skybox),
         };
     }

@@ -29,14 +29,14 @@ export class AppComponent {
     bottomRef = viewChild.required<ElementRef<HTMLCanvasElement>>('bottom');
     frontRef = viewChild.required<ElementRef<HTMLCanvasElement>>('front');
     backRef = viewChild.required<ElementRef<HTMLCanvasElement>>('back');
-    canvasses = {
-        left: computed(() => this.leftRef().nativeElement),
-        right: computed(() => this.rightRef().nativeElement),
-        top: computed(() => this.topRef().nativeElement),
-        bottom: computed(() => this.bottomRef().nativeElement),
-        front: computed(() => this.frontRef().nativeElement),
-        back: computed(() => this.backRef().nativeElement),
-    };
+    canvasses = computed(() => ({
+        left: this.leftRef().nativeElement,
+        right: this.rightRef().nativeElement,
+        top: this.topRef().nativeElement,
+        bottom: this.bottomRef().nativeElement,
+        front: this.frontRef().nativeElement,
+        back: this.backRef().nativeElement,
+    }));
 
     private readonly params = {
         seed: generateRandomSeed(),
@@ -57,7 +57,7 @@ export class AppComponent {
         renderCanvas.width = renderCanvas.clientWidth;
         renderCanvas.height = renderCanvas.clientHeight;
 
-        this.renderWorkManager = newWorkerManager(renderCanvas);
+        this.renderWorkManager = newWorkerManager(renderCanvas, this.canvasses());
 
         // Load param values from the URL
         this.route.queryParamMap.subscribe((queryParams) => {
@@ -112,8 +112,8 @@ export class AppComponent {
             this.pane.element.hidden = !doDisplay;
         }
 
-        for (const canvas of Object.values(this.canvasses)) {
-            canvas().hidden = !doDisplay;
+        for (const canvas of Object.values(this.canvasses())) {
+            canvas.hidden = !doDisplay;
         }
     }
 
@@ -190,7 +190,7 @@ export class AppComponent {
     }
 
     private async renderTextures() {
-        const textures = await this.renderWorkManager.renderSpace({
+        await this.renderWorkManager.renderTextures({
             seed: this.params.seed,
             pointStars: this.params.pointStars,
             stars: this.params.stars,
@@ -198,16 +198,7 @@ export class AppComponent {
             sun: this.params.sun,
             resolution: this.params.resolution,
         });
-        const stProm = this.renderWorkManager.setSkyboxTextures(textures);
 
-        for (const side of sideNames) {
-            const target = this.canvasses[side]();
-            target.width = target.height = this.params.resolution;
-            const ctx = target.getContext("2d")!;
-            ctx.drawImage(textures[side], 0, 0);
-        }
-
-        await stProm; // may not be necessary... but probably better
         this.animationFrameManager.scheduleRender();
     }
 
