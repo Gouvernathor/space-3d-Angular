@@ -92,7 +92,7 @@ export function newWorkerManager(
         };
     } else {
         // Web Workers are not supported in this environment.
-        // You should add a fallback so that your program still executes correctly.
+        // This is a fallback so that the program still executes correctly.
         const space = new Space3D();
         const skybox = new Skybox(renderCanvas);
         return {
