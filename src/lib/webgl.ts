@@ -112,11 +112,11 @@ export class Program {
         return uniforms;
     }
 
-    public setUniform(name: string, fn: (gl: WebGLRenderingContext, loc: WebGLUniformLocation) => void) {
+    public setUniform(name: string, fn: (gl: WebGLRenderingContext, loc: WebGLUniformLocation|null) => void) {
         this.use();
-        let location: WebGLUniformLocation;
+        let location: WebGLUniformLocation|null;
         try {
-            location = this.uniforms[name].location!;
+            location = this.uniforms[name].location;
         } catch (e) {
             console.error(`Failed to get location for uniform named ${name}`);
             throw e;
