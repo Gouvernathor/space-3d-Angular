@@ -213,24 +213,34 @@ export default class Space3D {
             // render point stars
             this.pPointStars.use();
             let model = glm.mat4.create();
-            this.pPointStars.setUniform("uView", "Matrix4fv", false, view);
-            this.pPointStars.setUniform("uProjection", "Matrix4fv", false, projection);
+            this.pPointStars.setUniform("uView",
+                (gl, loc) => gl.uniformMatrix4fv(loc, false, view));
+            this.pPointStars.setUniform("uProjection",
+                (gl, loc) => gl.uniformMatrix4fv(loc, false, projection));
             for (const ps of pStarParams) {
                 glm.mat4.mul(model, ps.rotation, model);
-                this.pPointStars.setUniform("uModel", "Matrix4fv", false, model);
+                this.pPointStars.setUniform("uModel",
+                    (gl, loc) => gl.uniformMatrix4fv(loc, false, model));
                 this.rPointStars.render();
             }
 
             // render stars
             this.pStar.use();
-            this.pStar.setUniform("uView", "Matrix4fv", false, view);
-            this.pStar.setUniform("uProjection", "Matrix4fv", false, projection);
-            this.pStar.setUniform("uModel", "Matrix4fv", false, model);
+            this.pStar.setUniform("uView",
+                (gl, loc) => gl.uniformMatrix4fv(loc, false, view));
+            this.pStar.setUniform("uProjection",
+                (gl, loc) => gl.uniformMatrix4fv(loc, false, projection));
+            this.pStar.setUniform("uModel",
+                (gl, loc) => gl.uniformMatrix4fv(loc, false, model));
             for (const s of starParams) {
-                this.pStar.setUniform("uPosition", "3fv", s.pos);
-                this.pStar.setUniform("uColor", "3fv", s.color);
-                this.pStar.setUniform("uSize", "1f", s.size);
-                this.pStar.setUniform("uFalloff", "1f", s.falloff);
+                this.pStar.setUniform("uPosition",
+                    (gl, loc) => gl.uniform3fv(loc, s.pos));
+                this.pStar.setUniform("uColor",
+                    (gl, loc) => gl.uniform3fv(loc, s.color));
+                this.pStar.setUniform("uSize",
+                    (gl, loc) => gl.uniform1f(loc, s.size));
+                this.pStar.setUniform("uFalloff",
+                    (gl, loc) => gl.uniform1f(loc, s.falloff));
                 this.rStar.render();
             }
 
@@ -238,27 +248,42 @@ export default class Space3D {
             this.pNebula.use();
             const empty: glm.ReadonlyMat4 = glm.mat4.create();
             for (const p of nebulaParams) {
-                this.pNebula.setUniform("uModel", "Matrix4fv", false, empty);
-                this.pNebula.setUniform("uView", "Matrix4fv", false, view);
-                this.pNebula.setUniform("uProjection", "Matrix4fv", false, projection);
-                this.pNebula.setUniform("uScale", "1f", p.scale);
-                this.pNebula.setUniform("uColor", "3fv", p.color);
-                this.pNebula.setUniform("uIntensity", "1f", p.intensity);
-                this.pNebula.setUniform("uFalloff", "1f", p.falloff);
-                this.pNebula.setUniform("uOffset", "3fv", p.offset);
+                this.pNebula.setUniform("uModel",
+                    (gl, loc) => gl.uniformMatrix4fv(loc, false, empty));
+                this.pNebula.setUniform("uView",
+                    (gl, loc) => gl.uniformMatrix4fv(loc, false, view));
+                this.pNebula.setUniform("uProjection",
+                    (gl, loc) => gl.uniformMatrix4fv(loc, false, projection));
+                this.pNebula.setUniform("uScale",
+                    (gl, loc) => gl.uniform1f(loc, p.scale));
+                this.pNebula.setUniform("uColor",
+                    (gl, loc) => gl.uniform3fv(loc, p.color));
+                this.pNebula.setUniform("uIntensity",
+                    (gl, loc) => gl.uniform1f(loc, p.intensity));
+                this.pNebula.setUniform("uFalloff",
+                    (gl, loc) => gl.uniform1f(loc, p.falloff));
+                this.pNebula.setUniform("uOffset",
+                    (gl, loc) => gl.uniform3fv(loc, p.offset));
                 this.rNebula.render();
             }
 
             // render sun
             this.pSun.use();
-            this.pSun.setUniform("uView", "Matrix4fv", false, view);
-            this.pSun.setUniform("uProjection", "Matrix4fv", false, projection);
-            this.pSun.setUniform("uModel", "Matrix4fv", false, empty);
+            this.pSun.setUniform("uView",
+                (gl, loc) => gl.uniformMatrix4fv(loc, false, view));
+            this.pSun.setUniform("uProjection",
+                (gl, loc) => gl.uniformMatrix4fv(loc, false, projection));
+            this.pSun.setUniform("uModel",
+                (gl, loc) => gl.uniformMatrix4fv(loc, false, empty));
             for (const sun of sunParams) {
-                this.pSun.setUniform("uPosition", "3fv", sun.pos);
-                this.pSun.setUniform("uColor", "3fv", sun.color);
-                this.pSun.setUniform("uSize", "1f", sun.size);
-                this.pSun.setUniform("uFalloff", "1f", sun.falloff);
+                this.pSun.setUniform("uPosition",
+                    (gl, loc) => gl.uniform3fv(loc, sun.pos));
+                this.pSun.setUniform("uColor",
+                    (gl, loc) => gl.uniform3fv(loc, sun.color));
+                this.pSun.setUniform("uSize",
+                    (gl, loc) => gl.uniform1f(loc, sun.size));
+                this.pSun.setUniform("uFalloff",
+                    (gl, loc) => gl.uniform1f(loc, sun.falloff));
                 this.rSun.render();
             }
 

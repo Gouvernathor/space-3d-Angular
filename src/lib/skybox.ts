@@ -34,39 +34,47 @@ export default class Skybox {
     public render(view: Float32List, projection: Float32List) {
         this.gl.viewport(0, 0, this.renderCanvas.width, this.renderCanvas.height);
 
-        const model = glm.mat4.create();
 
         this.pSkybox.use();
-        this.pSkybox.setUniform("uView", "Matrix4fv", false, view);
-        this.pSkybox.setUniform("uProjection", "Matrix4fv", false, projection);
+        this.pSkybox.setUniform("uView",
+            (gl, loc) => gl.uniformMatrix4fv(loc, false, view));
+        this.pSkybox.setUniform("uProjection",
+            (gl, loc) => gl.uniformMatrix4fv(loc, false, projection));
 
         this.textures!.front.bind();
-        this.pSkybox.setUniform("uModel", "Matrix4fv", false, model);
+        const model = glm.mat4.create();
+        this.pSkybox.setUniform("uModel",
+            (gl, loc) => gl.uniformMatrix4fv(loc, false, model));
         this.rSkybox.render();
 
         this.textures!.back.bind();
         glm.mat4.rotateY(model, glm.mat4.create(), Math.PI);
-        this.pSkybox.setUniform("uModel", "Matrix4fv", false, model);
+        this.pSkybox.setUniform("uModel",
+            (gl, loc) => gl.uniformMatrix4fv(loc, false, model));
         this.rSkybox.render();
 
         this.textures!.left.bind();
         glm.mat4.rotateY(model, glm.mat4.create(), Math.PI / 2);
-        this.pSkybox.setUniform("uModel", "Matrix4fv", false, model);
+        this.pSkybox.setUniform("uModel",
+            (gl, loc) => gl.uniformMatrix4fv(loc, false, model));
         this.rSkybox.render();
 
         this.textures!.right.bind();
         glm.mat4.rotateY(model, glm.mat4.create(), -Math.PI / 2);
-        this.pSkybox.setUniform("uModel", "Matrix4fv", false, model);
+        this.pSkybox.setUniform("uModel",
+            (gl, loc) => gl.uniformMatrix4fv(loc, false, model));
         this.rSkybox.render();
 
         this.textures!.top.bind();
         glm.mat4.rotateX(model, glm.mat4.create(), Math.PI / 2);
-        this.pSkybox.setUniform("uModel", "Matrix4fv", false, model);
+        this.pSkybox.setUniform("uModel",
+            (gl, loc) => gl.uniformMatrix4fv(loc, false, model));
         this.rSkybox.render();
 
         this.textures!.bottom.bind();
         glm.mat4.rotateX(model, glm.mat4.create(), -Math.PI / 2);
-        this.pSkybox.setUniform("uModel", "Matrix4fv", false, model);
+        this.pSkybox.setUniform("uModel",
+            (gl, loc) => gl.uniformMatrix4fv(loc, false, model));
         this.rSkybox.render();
     }
 }
