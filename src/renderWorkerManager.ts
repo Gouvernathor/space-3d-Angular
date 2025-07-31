@@ -2,6 +2,24 @@ import { SideName, sideNames } from "./lib/constants";
 import Skybox from "./lib/skybox";
 import Space3D from "./lib/space3d";
 
+function promiseOfResponse<T>(worker: Worker): [string, Promise<T>] {
+    // To avoid mixups between different render calls, we use a unique ID
+    const id = crypto.randomUUID();
+
+    // Prepare reception of the response
+    const prom = new Promise<T>((resolve) => {
+        const listener = ({ data: { id: receivedId, result } }: MessageEvent) => {
+            if (receivedId === id) {
+                worker.removeEventListener("message", listener);
+                resolve(result);
+            }
+        };
+        worker.addEventListener("message", listener);
+    });
+
+    return [id, prom];
+}
+
 export interface RenderWorkManager {
     actuateRenderCanvasSize(clientWidth: number, clientHeight: number): Promise<void>|void;
     renderTextures(...p: Parameters<typeof Space3D.prototype.render>): Promise<void>|void;
@@ -35,21 +53,10 @@ export function newWorkerManager(
             }
             console.debug(`page got message (from worker): ${data}`);
         });
+
         return {
             actuateRenderCanvasSize: (clientWidth, clientHeight) => {
-                // To avoid mixups between different render calls, we use a unique ID
-                const id = crypto.randomUUID();
-
-                // Prepare reception of the response
-                const prom = new Promise<void>((resolve) => {
-                    const listener = ({ data: { id: receivedId } }: MessageEvent) => {
-                        if (receivedId === id) {
-                            worker.removeEventListener("message", listener);
-                            resolve();
-                        }
-                    };
-                    worker.addEventListener("message", listener);
-                });
+                const [id, prom] = promiseOfResponse<void>(worker);
 
                 // No transferable objects in this case
                 worker.postMessage({ command: "actuateRenderCanvasSize", id, clientWidth, clientHeight });
@@ -58,19 +65,7 @@ export function newWorkerManager(
                 return prom;
             },
             renderTextures: (params) => {
-                // To avoid mixups between different render calls, we use a unique ID
-                const id = crypto.randomUUID();
-
-                // Prepare reception of the response
-                const prom = new Promise<void>((resolve) => {
-                    const listener = ({ data: { id: receivedId } }: MessageEvent) => {
-                        if (receivedId === id) {
-                            worker.removeEventListener("message", listener);
-                            resolve();
-                        }
-                    };
-                    worker.addEventListener("message", listener);
-                });
+                const [id, prom] = promiseOfResponse<void>(worker);
 
                 // No transferable objects in this case
                 worker.postMessage({ command: "renderTextures", id, params }, []);
@@ -79,19 +74,7 @@ export function newWorkerManager(
                 return prom;
             },
             renderSkybox: (view, projection) => {
-                // To avoid mixups between different render calls, we use a unique ID
-                const id = crypto.randomUUID();
-
-                // Prepare reception of the response
-                const prom = new Promise<void>((resolve) => {
-                    const listener = ({ data: { id: receivedId } }: MessageEvent) => {
-                        if (receivedId === id) {
-                            worker.removeEventListener("message", listener);
-                            resolve();
-                        }
-                    };
-                    worker.addEventListener("message", listener);
-                });
+                const [id, prom] = promiseOfResponse<void>(worker);
 
                 const transferableArray: Transferable[] = [];
                 for (const list of [view, projection]) {
@@ -101,7 +84,7 @@ export function newWorkerManager(
                         }
                     }
                 }
-                worker.postMessage({ command: 'renderSkybox', view, projection }, transferableArray);
+                worker.postMessage({ command: 'renderSkybox', id, view, projection }, transferableArray);
 
                 // Now wait for the response
                 return prom;
