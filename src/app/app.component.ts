@@ -222,30 +222,33 @@ export class AppComponent {
         return (nowTimestamp - epoch) * this.params.animationSpeed*AppComponent.ANIMATION_SPEED_FACTOR;
     }
     private render(nowTimestamp: number) {
-        const view = glm.mat4.create();
-        const projection = glm.mat4.create();
-
+        // Actuating the canvas size
         const renderCanvas = this.renderCanvas();
         renderCanvas.width = renderCanvas.clientWidth;
         renderCanvas.height = renderCanvas.clientHeight;
 
+        // Creating the position matrix
         const position = this.lastPosition = this.params.animate ?
             this.computePosition(nowTimestamp, (this.animationEpoch ??= nowTimestamp)) :
             (this.lastPosition ?? this.computePosition(0, 0));
-
+        const view = glm.mat4.create();
         glm.mat4.lookAt(view,
             [0, 0, 0],
             [Math.cos(position), Math.sin(position*.555), Math.sin(position)],
             [0, 1, 0]);
 
+        // Creating the projection matrix
         const fov = (this.params.fov / 180) * Math.PI;
+        const projection = glm.mat4.create();
         glm.mat4.perspective(projection,
             fov,
             renderCanvas.width / renderCanvas.height,
             0.1, 8);
 
+        // Rendering the skybox
         this.skybox.render(view, projection);
 
+        // Setting up the next render pass
         if (this.params.animate) {
             this.animationFrameManager.scheduleRender();
         }
