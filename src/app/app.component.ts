@@ -256,7 +256,7 @@ export class AppComponent {
 
 interface RenderWorkManager {
     readonly renderSpace: (...p: Parameters<typeof Space3D.prototype.render>) => Promise<ReturnType<typeof Space3D.prototype.render>>|ReturnType<typeof Space3D.prototype.render>;
-    readonly setSkyboxTextures: typeof Skybox.prototype.setTextures;
+    readonly setSkyboxTextures: (...p: Parameters<typeof Skybox.prototype.setTextures>) => Promise<ReturnType<typeof Skybox.prototype.setTextures>>|ReturnType<typeof Skybox.prototype.setTextures>;
     readonly renderSkybox: typeof Skybox.prototype.render;
 }
 function newWorkerManager(renderCanvas: HTMLCanvasElement): RenderWorkManager {
@@ -290,6 +290,20 @@ function newWorkerManager(renderCanvas: HTMLCanvasElement): RenderWorkManager {
                 return prom;
             },
             setSkyboxTextures: (canvases) => {
+                // To avoid mixups between different render calls, we use a unique ID
+                const id = crypto.randomUUID();
+
+                // Prepare reception of the response
+                const prom = new Promise<void>((resolve) => {
+                    const listener = ({ data: { id: receivedId } }: MessageEvent) => {
+                        if (receivedId === id) {
+                            worker.removeEventListener("message", listener);
+                            resolve();
+                        }
+                    };
+                    worker.addEventListener("message", listener);
+                });
+
                 const transferableArray: Transferable[] = [];
                 for (const canvas of Object.values(canvases)) {
                     if (canvas instanceof HTMLCanvasElement) {
@@ -299,7 +313,10 @@ function newWorkerManager(renderCanvas: HTMLCanvasElement): RenderWorkManager {
                         transferableArray.push(canvas);
                     }
                 }
-                worker.postMessage({ command: 'setSkyboxTextures', canvases }, transferableArray);
+                worker.postMessage({ command: 'setSkyboxTextures', id, canvases }, transferableArray);
+
+                // Now wait for the response
+                return prom;
             },
             renderSkybox: (view, projection) => {
                 const transferableArray: Transferable[] = [];
