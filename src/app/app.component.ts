@@ -54,10 +54,9 @@ export class AppComponent {
 
     ngOnInit() {
         const renderCanvas = this.renderCanvas();
-        renderCanvas.width = renderCanvas.clientWidth;
-        renderCanvas.height = renderCanvas.clientHeight;
 
         this.renderWorkManager = newWorkerManager(renderCanvas, this.canvasses());
+        this.renderWorkManager.actuateRenderCanvasSize(renderCanvas.clientWidth, renderCanvas.clientHeight);
 
         // Load param values from the URL
         this.route.queryParamMap.subscribe((queryParams) => {
@@ -213,8 +212,7 @@ export class AppComponent {
     private render(nowTimestamp: number) {
         // Actuating the canvas size
         const renderCanvas = this.renderCanvas();
-        renderCanvas.width = renderCanvas.clientWidth;
-        renderCanvas.height = renderCanvas.clientHeight;
+        this.renderWorkManager.actuateRenderCanvasSize(renderCanvas.clientWidth, renderCanvas.clientHeight);
 
         // Creating the position matrix
         const position = this.lastPosition = this.params.animate ?

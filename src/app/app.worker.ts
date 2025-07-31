@@ -4,6 +4,7 @@ import { SideName, sideNames } from "../lib/constants";
 import Skybox from "../lib/skybox";
 import Space3D from "../lib/space3d";
 
+let renderCanvas: OffscreenCanvas;
 const space = new Space3D();
 let skybox: Skybox;
 let canvasses: { [K in SideName]: OffscreenCanvas };
@@ -15,15 +16,26 @@ addEventListener("message", ({ data: { command, ...data } }) => {
                 throw new Error("Worker already initialized");
             }
 
-            const { renderCanvas, canvasses: receivedCanvasses } = data;
-            if (!(renderCanvas instanceof OffscreenCanvas)) {
+            const { renderCanvas: receivedCanvas, canvasses: receivedCanvasses } = data;
+            if (!(receivedCanvas instanceof OffscreenCanvas)) {
                 throw new Error("Expected renderCanvas to be an OffscreenCanvas");
             }
 
+            renderCanvas = receivedCanvas;
             skybox = new Skybox(renderCanvas);
             canvasses = receivedCanvasses;
 
             postMessage("initialized"); // debugging only
+        } break;
+
+
+        case "actuateRenderCanvasSize": {
+            const { id, clientWidth, clientHeight } = data;
+
+            renderCanvas.width = clientWidth;
+            renderCanvas.height = clientHeight;
+
+            postMessage({ id, message: "actuateRenderCanvasSize completed" });
         } break;
 
 

@@ -3,6 +3,7 @@ import Skybox from "./lib/skybox";
 import Space3D from "./lib/space3d";
 
 export interface RenderWorkManager {
+    actuateRenderCanvasSize(clientWidth: number, clientHeight: number): Promise<void>|void;
     renderTextures(...p: Parameters<typeof Space3D.prototype.render>): Promise<void>|void;
     readonly renderSkybox: typeof Skybox.prototype.render;
 }
@@ -35,6 +36,27 @@ export function newWorkerManager(
             console.debug(`page got message (from worker): ${data}`);
         });
         return {
+            actuateRenderCanvasSize: (clientWidth, clientHeight) => {
+                // To avoid mixups between different render calls, we use a unique ID
+                const id = crypto.randomUUID();
+
+                // Prepare reception of the response
+                const prom = new Promise<void>((resolve) => {
+                    const listener = ({ data: { id: receivedId } }: MessageEvent) => {
+                        if (receivedId === id) {
+                            worker.removeEventListener("message", listener);
+                            resolve();
+                        }
+                    };
+                    worker.addEventListener("message", listener);
+                });
+
+                // The worker will adjust the size of the render canvas based on the client size
+                worker.postMessage({ command: "actuateRenderCanvasSize", id, clientWidth, clientHeight });
+
+                // Now wait for the response
+                return prom;
+            },
             renderTextures: (params) => {
                 // To avoid mixups between different render calls, we use a unique ID
                 const id = crypto.randomUUID();
@@ -74,8 +96,10 @@ export function newWorkerManager(
         const space = new Space3D();
         const skybox = new Skybox(renderCanvas);
         return {
-            // renderSpace: space.render.bind(space),
-            // setSkyboxTextures: skybox.setTextures.bind(skybox),
+            actuateRenderCanvasSize: (clientWidth, clientHeight) => {
+                renderCanvas.width = clientWidth;
+                renderCanvas.height = clientHeight;
+            },
             renderTextures: (params) => {
                 const textures = space.render(params);
                 skybox.setTextures(textures);
