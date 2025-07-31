@@ -9,7 +9,7 @@ export default class Skybox {
     private readonly gl: WebGLRenderingContext;
     private readonly pSkybox: webgl.Program;
     private readonly rSkybox: webgl.Renderable;
-    private textures: Record<SideName, webgl.Texture>|null = null;
+    private textures: { [K in SideName]: webgl.Texture }|null = null;
 
     constructor(
         private renderCanvas: HTMLCanvasElement,
@@ -20,8 +20,8 @@ export default class Skybox {
         this.rSkybox = buildQuad(this.gl, this.pSkybox);
     }
 
-    public setTextures(canvases: Record<SideName, Canvas>) {
-        const textures = {} as Record<SideName, webgl.Texture>;
+    public setTextures(canvases: { readonly [K in SideName]: Canvas }) {
+        const textures = {} as { [K in SideName]: webgl.Texture };
         for (const [key, canvas] of Object.entries(canvases)) {
             textures[key as SideName] = new webgl.Texture(this.gl, 0, canvas, canvas.width, canvas.height, {
                 min: this.gl.LINEAR_MIPMAP_LINEAR,
