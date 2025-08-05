@@ -1,6 +1,6 @@
 # Space3D
 
-This is an Angular and TypeScript port of Rye Terrell's [Space 3D](https://tools.wwwtyro.net/space-3d/).
+This is an Angular and TypeScript port of Rye Terrell's [Space 3D](https://tools.wwwtyro.net/space-3d/). It features threaded rendering using Web Workers, allowing for smooth performance even with complex 3D scenes, and a no-GUI use for streaming software or other real-time composition uses.
 
 Generated using [Angular CLI](https://github.com/angular/angular-cli) version 19.0.7.
 
