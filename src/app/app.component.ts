@@ -184,6 +184,7 @@ export class AppComponent {
             this.updateURL();
             this.copyUrlToClipboard();
         });
+        pane.element.title = "Add &noGUI to the URL (or ?noGUI if there are no parameters)\nto prevent this UI from being displayed";
         // pane.addButton({ title: "Download skybox" })
         //     .on("click", () => this.downloadSkybox());
     }
