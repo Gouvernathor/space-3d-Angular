@@ -5,7 +5,7 @@ import * as glm from 'gl-matrix';
 import generateRandomSeed from '../util/generateRandomSeed';
 import AnimationFrameManager from '../util/animationFrameManager';
 import { sideNames } from '../lib/constants';
-import { newWorkerManager, RenderWorkManager } from '../renderWorkerManager';
+import { newWorkerManager, RenderWorkManager } from '../worker/renderWorkerManager';
 
 @Component({
     selector: 'app-root',

@@ -1,6 +1,6 @@
-import { SideName, sideNames } from "./lib/constants";
-import Skybox from "./lib/skybox";
-import Space3D from "./lib/space3d";
+import { SideName, sideNames } from "../lib/constants";
+import Skybox from "../lib/skybox";
+import Space3D from "../lib/space3d";
 
 function promiseOfResponse<T>(worker: Worker): [string, Promise<T>] {
     // To avoid mixups between different render calls, we use a unique ID
@@ -30,7 +30,7 @@ export function newWorkerManager(
     canvasses: { readonly [K in SideName]: HTMLCanvasElement },
 ): RenderWorkManager {
     if (typeof Worker !== 'undefined') {
-        const worker = new Worker(new URL('./app/app.worker', import.meta.url));
+        const worker = new Worker(new URL('./renderWorker.worker', import.meta.url));
 
         { // Initialize the worker
             const transferableArray: Transferable[] = [];
