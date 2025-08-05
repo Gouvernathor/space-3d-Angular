@@ -2,9 +2,8 @@ import { Component, computed, ElementRef, viewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Pane } from 'tweakpane';
 import * as glm from 'gl-matrix';
-import generateRandomSeed from '../util/generateRandomSeed';
 import AnimationFrameManager from '../util/animationFrameManager';
-import { sideNames } from '../lib/constants';
+import generateRandomSeed from '../util/generateRandomSeed';
 import { newWorkerManager, RenderWorkManager } from '../worker/renderWorkerManager';
 
 @Component({
