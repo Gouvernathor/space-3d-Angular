@@ -32,8 +32,11 @@ export default class Skybox {
     }
 
     public render(view: Float32List, projection: Float32List) {
-        this.gl.viewport(0, 0, this.renderCanvas.width, this.renderCanvas.height);
+        if (!this.textures) {
+            throw new Error("Textures not set. Call setTextures() before rendering.");
+        }
 
+        this.gl.viewport(0, 0, this.renderCanvas.width, this.renderCanvas.height);
 
         this.pSkybox.use();
         this.pSkybox.setUniform("uView",
@@ -41,37 +44,37 @@ export default class Skybox {
         this.pSkybox.setUniform("uProjection",
             (gl, loc) => gl.uniformMatrix4fv(loc, false, projection));
 
-        this.textures!.front.bind();
+        this.textures.front.bind();
         const model = glm.mat4.create();
         this.pSkybox.setUniform("uModel",
             (gl, loc) => gl.uniformMatrix4fv(loc, false, model));
         this.rSkybox.render();
 
-        this.textures!.back.bind();
+        this.textures.back.bind();
         glm.mat4.rotateY(model, glm.mat4.create(), Math.PI);
         this.pSkybox.setUniform("uModel",
             (gl, loc) => gl.uniformMatrix4fv(loc, false, model));
         this.rSkybox.render();
 
-        this.textures!.left.bind();
+        this.textures.left.bind();
         glm.mat4.rotateY(model, glm.mat4.create(), Math.PI / 2);
         this.pSkybox.setUniform("uModel",
             (gl, loc) => gl.uniformMatrix4fv(loc, false, model));
         this.rSkybox.render();
 
-        this.textures!.right.bind();
+        this.textures.right.bind();
         glm.mat4.rotateY(model, glm.mat4.create(), -Math.PI / 2);
         this.pSkybox.setUniform("uModel",
             (gl, loc) => gl.uniformMatrix4fv(loc, false, model));
         this.rSkybox.render();
 
-        this.textures!.top.bind();
+        this.textures.top.bind();
         glm.mat4.rotateX(model, glm.mat4.create(), Math.PI / 2);
         this.pSkybox.setUniform("uModel",
             (gl, loc) => gl.uniformMatrix4fv(loc, false, model));
         this.rSkybox.render();
 
-        this.textures!.bottom.bind();
+        this.textures.bottom.bind();
         glm.mat4.rotateX(model, glm.mat4.create(), -Math.PI / 2);
         this.pSkybox.setUniform("uModel",
             (gl, loc) => gl.uniformMatrix4fv(loc, false, model));
