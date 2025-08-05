@@ -47,12 +47,12 @@ export function newWorkerManager(
             }, transferableArray);
         }
 
-        worker.addEventListener("message", ({ data }) => {
-            if (data.message) {
-                data = data.message;
-            }
-            console.debug(`page got message (from worker): ${data}`);
-        });
+        // worker.addEventListener("message", ({ data }) => {
+        //     if (data.message) {
+        //         data = data.message;
+        //     }
+        //     console.debug(`page got message (from worker): ${data}`);
+        // });
 
         return {
             actuateRenderCanvasSize: (clientWidth, clientHeight) => {
