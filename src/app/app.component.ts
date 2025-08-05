@@ -219,16 +219,14 @@ export class AppComponent {
         const position = this.lastPosition = this.params.animate ?
             this.computePosition(nowTimestamp, (this.animationEpoch ??= nowTimestamp)) :
             (this.lastPosition ?? this.computePosition(0, 0));
-        const view = glm.mat4.create();
-        glm.mat4.lookAt(view,
+        const view = glm.mat4.lookAt(glm.mat4.create(),
             [0, 0, 0],
             [Math.cos(position), Math.sin(position*.555), Math.sin(position)],
             [0, 1, 0]);
 
         // Creating the projection matrix
         const fov = (this.params.fov / 180) * Math.PI;
-        const projection = glm.mat4.create();
-        glm.mat4.perspective(projection,
+        const projection = glm.mat4.perspective(glm.mat4.create(),
             fov,
             renderCanvas.width / renderCanvas.height,
             0.1, 8);
