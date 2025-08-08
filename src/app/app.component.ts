@@ -116,6 +116,10 @@ export class AppComponent {
         }
     }
 
+    private isClipboardWriteTextSupported(): boolean {
+        return !!(globalThis.navigator?.clipboard?.writeText);
+    }
+
     private updateURL() {
         this.router.navigate([], {
             queryParams: this.params,
@@ -189,10 +193,15 @@ export class AppComponent {
             }
         });
 
-        const copyButton = pane.addButton({ title: "Copy URL to clipboard" }).on("click", () => {
-            this.copyUrlToClipboard();
-        });
-        copyButton.element.title = "Add &noGUI to the URL (or ?noGUI if there are no parameters)\nto prevent this UI from being displayed";
+        const noGUIClue = "Add &noGUI to the URL (or ?noGUI if there are no parameters)\nto prevent this UI from being displayed";
+        if (this.isClipboardWriteTextSupported()) {
+            const copyButton = pane.addButton({ title: "Copy URL to clipboard" }).on("click", () => {
+                this.copyUrlToClipboard();
+            });
+            copyButton.element.title = noGUIClue;
+        } else {
+            pane.element.title = noGUIClue;
+        }
         pane.addButton({ title: "Copy parameters to URL" }).on("click", () => {
             this.updateURL();
         });
