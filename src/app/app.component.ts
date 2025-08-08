@@ -1,9 +1,10 @@
-import { Component, computed, ElementRef, inject, viewChild } from '@angular/core';
+import { ApplicationRef, Component, computed, ElementRef, inject, viewChild } from '@angular/core';
 import { ActivatedRoute, ParamMap, Router } from '@angular/router';
 import { Pane } from 'tweakpane';
 import * as glm from 'gl-matrix';
 import AnimationFrameManager from '../util/animationFrameManager';
 import generateRandomSeed from '../util/generateRandomSeed';
+import initialQueryParamMap from '../util/initialQueryParamMap';
 import { newWorkerManager, RenderWorkManager } from '../worker/renderWorkerManager';
 
 @Component({
@@ -15,6 +16,7 @@ import { newWorkerManager, RenderWorkManager } from '../worker/renderWorkerManag
 export class AppComponent {
     title = 'Space-3D';
 
+    private readonly applicationRef = inject(ApplicationRef);
     private readonly route = inject(ActivatedRoute);
     private readonly router = inject(Router);
 
@@ -99,7 +101,7 @@ export class AppComponent {
 
             this.renderTextures();
         };
-        this.route.queryParamMap.subscribe(applyParamsFromQueryParamMap);
+        initialQueryParamMap(this.applicationRef, this.router).then(applyParamsFromQueryParamMap);
 
         this.initTweakpanePane();
     }
