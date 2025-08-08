@@ -1,4 +1,4 @@
-import { Component, computed, ElementRef, viewChild } from '@angular/core';
+import { Component, computed, ElementRef, inject, viewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Pane } from 'tweakpane';
 import * as glm from 'gl-matrix';
@@ -15,10 +15,8 @@ import { newWorkerManager, RenderWorkManager } from '../worker/renderWorkerManag
 export class AppComponent {
     title = 'Space-3D';
 
-    constructor(
-        private readonly route: ActivatedRoute,
-        private readonly router: Router,
-    ) {}
+    private readonly route = inject(ActivatedRoute);
+    private readonly router = inject(Router);
 
     renderCanvasRef = viewChild.required<ElementRef<HTMLCanvasElement>>('rendercanvas');
     renderCanvas = computed(() => this.renderCanvasRef().nativeElement);
