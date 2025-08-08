@@ -189,13 +189,13 @@ export class AppComponent {
             }
         });
 
-        pane.addButton({ title: "Copy URL to clipboard" }).on("click", () => {
+        const copyButton = pane.addButton({ title: "Copy URL to clipboard" }).on("click", () => {
             this.copyUrlToClipboard();
         });
+        copyButton.element.title = "Add &noGUI to the URL (or ?noGUI if there are no parameters)\nto prevent this UI from being displayed";
         pane.addButton({ title: "Copy parameters to URL" }).on("click", () => {
             this.updateURL();
         });
-        pane.element.title = "Add &noGUI to the URL (or ?noGUI if there are no parameters)\nto prevent this UI from being displayed";
 
         // pane.addButton({ title: "Download skybox" })
         //     .on("click", () => this.downloadSkybox());
