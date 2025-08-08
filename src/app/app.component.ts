@@ -1,5 +1,5 @@
 import { Component, computed, ElementRef, inject, viewChild } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, ParamMap, Router } from '@angular/router';
 import { Pane } from 'tweakpane';
 import * as glm from 'gl-matrix';
 import AnimationFrameManager from '../util/animationFrameManager';
@@ -56,7 +56,7 @@ export class AppComponent {
         this.renderWorkManager.actuateRenderCanvasSize(renderCanvas.clientWidth, renderCanvas.clientHeight);
 
         // Load param values from the URL
-        this.route.queryParamMap.subscribe((queryParams) => {
+        const applyParamsFromQueryParamMap = (queryParams: ParamMap) => {
             if (queryParams.has("seed")) {
                 this.params.seed = queryParams.get("seed")!;
             }
@@ -98,7 +98,8 @@ export class AppComponent {
             this.pane?.refresh();
 
             this.renderTextures();
-        });
+        };
+        this.route.queryParamMap.subscribe(applyParamsFromQueryParamMap);
 
         this.initTweakpanePane();
     }
