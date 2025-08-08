@@ -58,7 +58,7 @@ export class AppComponent {
         this.renderWorkManager.actuateRenderCanvasSize(renderCanvas.clientWidth, renderCanvas.clientHeight);
 
         // Load param values from the URL
-        const applyParamsFromQueryParamMap = (queryParams: ParamMap) => {
+        initialQueryParamMap(this.applicationRef, this.router).then((queryParams => {
             if (queryParams.has("seed")) {
                 this.params.seed = queryParams.get("seed")!;
             }
@@ -100,8 +100,7 @@ export class AppComponent {
             this.pane?.refresh();
 
             this.renderTextures();
-        };
-        initialQueryParamMap(this.applicationRef, this.router).then(applyParamsFromQueryParamMap);
+        }));
 
         this.initTweakpanePane();
     }
