@@ -115,6 +115,8 @@ export class AppComponent {
         }
     }
 
+    // Exports (URL and blobs)
+
     private isClipboardWriteTextSupported(): boolean {
         return !!(globalThis.navigator?.clipboard?.writeText);
     }
@@ -126,12 +128,15 @@ export class AppComponent {
             relativeTo: this.route,
         });
     }
-    private async copyUrlToClipboard() {
+    private async copyUrlToClipboard(withNoGUI = false) {
+        const params = withNoGUI ? { ...this.params, noGUI: "" } : this.params;
+
         const urlTree = this.router.createUrlTree([], {
-            queryParams: this.params,
+            queryParams: params,
             relativeTo: this.route,
         });
         const fullURL = location.host + urlTree.toString();
+
         try {
             await navigator.clipboard.writeText(fullURL);
         } catch (err) {
@@ -192,12 +197,15 @@ export class AppComponent {
             }
         });
 
+        pane.addBlade({ view: "separator" });
         const noGUIClue = "Add &noGUI to the URL (or ?noGUI if there are no parameters)\nto prevent this UI from being displayed";
         if (this.isClipboardWriteTextSupported()) {
-            const copyButton = pane.addButton({ title: "Copy URL to clipboard" }).on("click", () => {
+            pane.addButton({ title: "Copy URL to clipboard" }).on("click", () => {
                 this.copyUrlToClipboard();
             });
-            copyButton.element.title = noGUIClue;
+            pane.addButton({ title: "Copy no-GUI URL to clipboard" }).on("click", () => {
+                this.copyUrlToClipboard(true);
+            });
         } else {
             pane.element.title = noGUIClue;
         }
