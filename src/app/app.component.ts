@@ -51,65 +51,59 @@ export class AppComponent {
 
     private renderWorkManager!: RenderWorkManager;
 
-    ngOnInit() {
+    async ngOnInit() {
         const renderCanvas = this.renderCanvas();
 
         this.renderWorkManager = newWorkerManager(renderCanvas, this.canvasses());
-        this.renderWorkManager.actuateRenderCanvasSize(renderCanvas.clientWidth, renderCanvas.clientHeight);
+        await this.renderWorkManager.actuateRenderCanvasSize(renderCanvas.clientWidth, renderCanvas.clientHeight);
 
         // Load param values from the URL
-        initialQueryParamMap(this.applicationRef, this.router).then((queryParams => {
-            if (queryParams.has("seed")) {
-                this.params.seed = queryParams.get("seed")!;
-            }
-
-            let fov: number;
-            if (queryParams.has("fov") && !isNaN(fov = +queryParams.get("fov")!)) {
-                this.params.fov = fov;
-            }
-
-            if (queryParams.has("pointStars")) {
-                this.params.pointStars = queryParams.get("pointStars") === "true";
-            }
-            if (queryParams.has("stars")) {
-                this.params.stars = queryParams.get("stars") === "true";
-            }
-            if (queryParams.has("nebulae")) {
-                this.params.nebulae = queryParams.get("nebulae") === "true";
-            }
-            if (queryParams.has("sun")) {
-                this.params.sun = queryParams.get("sun") === "true";
-            }
-
-            let resolution: number;
-            if (queryParams.has("resolution") && (resolution = parseInt(queryParams.get("resolution")!)) > 0) {
-                this.params.resolution = resolution;
-            }
-
-            if (queryParams.has("animate")) {
-                this.params.animate = queryParams.get("animate") === "true";
-            }
-            let animationSpeed: number;
-            if (queryParams.has("animationSpeed") && !isNaN(animationSpeed = parseFloat(queryParams.get("animationSpeed")!))) {
-                this.params.animationSpeed = animationSpeed;
-            }
-
-            const displayUI = !queryParams.has("noGUI") || queryParams.get("noGUI")! === "false";
-            this.displayUI(displayUI);
-
-            this.pane?.refresh();
-
-            this.renderTextures();
-        }));
-
-        this.initTweakpanePane();
-    }
-
-    private displayUI(doDisplay: boolean) {
-        if (this.pane) {
-            this.pane.element.hidden = !doDisplay;
+        const queryParams = await initialQueryParamMap(this.applicationRef, this.router);
+        if (queryParams.has("seed")) {
+            this.params.seed = queryParams.get("seed")!;
         }
 
+        let fov: number;
+        if (queryParams.has("fov") && !isNaN(fov = +queryParams.get("fov")!)) {
+            this.params.fov = fov;
+        }
+
+        if (queryParams.has("pointStars")) {
+            this.params.pointStars = queryParams.get("pointStars") === "true";
+        }
+        if (queryParams.has("stars")) {
+            this.params.stars = queryParams.get("stars") === "true";
+        }
+        if (queryParams.has("nebulae")) {
+            this.params.nebulae = queryParams.get("nebulae") === "true";
+        }
+        if (queryParams.has("sun")) {
+            this.params.sun = queryParams.get("sun") === "true";
+        }
+
+        let resolution: number;
+        if (queryParams.has("resolution") && (resolution = parseInt(queryParams.get("resolution")!)) > 0) {
+            this.params.resolution = resolution;
+        }
+
+        if (queryParams.has("animate")) {
+            this.params.animate = queryParams.get("animate") === "true";
+        }
+        let animationSpeed: number;
+        if (queryParams.has("animationSpeed") && !isNaN(animationSpeed = parseFloat(queryParams.get("animationSpeed")!))) {
+            this.params.animationSpeed = animationSpeed;
+        }
+
+        const displayUI = !queryParams.has("noGUI") || queryParams.get("noGUI")! === "false";
+        this.displayPatron(displayUI);
+        if (displayUI) {
+            this.initTweakpanePane();
+        }
+
+        this.renderTextures();
+    }
+
+    private displayPatron(doDisplay: boolean) {
         for (const canvas of Object.values(this.canvasses())) {
             canvas.hidden = !doDisplay;
         }
