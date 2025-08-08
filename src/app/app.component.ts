@@ -123,8 +123,17 @@ export class AppComponent {
             relativeTo: this.route,
         });
     }
-    private copyUrlToClipboard() {
-        // TODO
+    private async copyUrlToClipboard() {
+        const urlTree = this.router.createUrlTree([], {
+            queryParams: this.params,
+            relativeTo: this.route,
+        });
+        const fullURL = location.host + urlTree.toString();
+        try {
+            await navigator.clipboard.writeText(fullURL);
+        } catch (err) {
+            console.error(`Failed to copy URL to clipboard: ${err}`);
+        }
     }
 
     // Tweakpane options pane
@@ -180,11 +189,14 @@ export class AppComponent {
             }
         });
 
-        pane.addButton({ title: "Copy (to) URL" }).on("click", () => {
-            this.updateURL();
+        pane.addButton({ title: "Copy URL to clipboard" }).on("click", () => {
             this.copyUrlToClipboard();
         });
+        pane.addButton({ title: "Copy parameters to URL" }).on("click", () => {
+            this.updateURL();
+        });
         pane.element.title = "Add &noGUI to the URL (or ?noGUI if there are no parameters)\nto prevent this UI from being displayed";
+
         // pane.addButton({ title: "Download skybox" })
         //     .on("click", () => this.downloadSkybox());
     }
