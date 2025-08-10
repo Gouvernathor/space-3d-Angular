@@ -148,16 +148,31 @@ export class AppComponent {
         const zipFileBlobPromise = new Response(zipFileStream.readable).blob();
 
         const zipWriter = new ZipWriter(zipFileStream.writable);
-        const mimes = [];
         for (const [side, canvas] of Object.entries(this.canvasses())) {
             const [blob, ext] = await getBlobFromCanvas(canvas);
             await zipWriter.add(`${side}.${ext}`, blob.stream());
         }
+        const [cubemapBlob, cubemapExt] = await getBlobFromCanvas(this.generateCubeMap());
+        await zipWriter.add(`cubemap.${cubemapExt}`, cubemapBlob.stream());
         await zipWriter.close();
 
         const zipFileBlob = await zipFileBlobPromise;
         this.blobManager.downloadBlob(zipFileBlob, "skybox.zip");
         this.blobManager.copyBlobs(zipFileBlob);
+    }
+    private generateCubeMap() {
+        const resolution = this.params.resolution;
+        const cubemapCanvas = new OffscreenCanvas(resolution*4, resolution*3);
+        const { left, right, top, bottom, front, back } = this.canvasses();
+
+        const context = cubemapCanvas.getContext("2d")!;
+        context.drawImage(left, 0, resolution);
+        context.drawImage(top, resolution, 0);
+        context.drawImage(front, resolution, resolution);
+        context.drawImage(bottom, resolution, resolution*2);
+        context.drawImage(right, resolution*2, resolution);
+        context.drawImage(back, resolution*3, resolution);
+        return cubemapCanvas;
     }
 
     // Tweakpane options pane
