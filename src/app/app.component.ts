@@ -145,7 +145,8 @@ export class AppComponent {
 
     private async downloadSkybox() {
         const zipFileStream = new TransformStream();
-        const zipFileBlobPromise = new Response(zipFileStream.readable).blob();
+        const zipFileBlobPromise = new Response(zipFileStream.readable).blob()
+            .then(blob => new Blob([blob], { type: "application/zip" }));
 
         const zipWriter = new ZipWriter(zipFileStream.writable);
         for (const [side, canvas] of Object.entries(this.canvasses())) {
@@ -157,8 +158,7 @@ export class AppComponent {
         await zipWriter.close();
 
         const zipFileBlob = await zipFileBlobPromise;
-        this.blobManager.downloadBlob(zipFileBlob, "skybox.zip");
-        this.blobManager.copyBlobs(zipFileBlob);
+        await this.blobManager.downloadBlob(zipFileBlob, "skybox.zip");
     }
     private generateCubeMap() {
         const resolution = this.params.resolution;
