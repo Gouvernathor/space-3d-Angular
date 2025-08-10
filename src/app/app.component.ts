@@ -1,5 +1,5 @@
 import { ApplicationRef, Component, computed, ElementRef, inject, viewChild } from '@angular/core';
-import { ActivatedRoute, ParamMap, Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Pane } from 'tweakpane';
 import * as glm from 'gl-matrix';
 import AnimationFrameManager from '../util/animationFrameManager';
