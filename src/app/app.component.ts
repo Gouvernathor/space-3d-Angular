@@ -2,10 +2,13 @@ import { ApplicationRef, Component, computed, ElementRef, inject, viewChild } fr
 import { ActivatedRoute, Router } from '@angular/router';
 import { Pane } from 'tweakpane';
 import * as glm from 'gl-matrix';
+import { ZipWriter } from '@zip.js/zip.js';
 import AnimationFrameManager from '../util/animationFrameManager';
 import generateRandomSeed from '../util/generateRandomSeed';
 import initialQueryParamMap from '../util/initialQueryParamMap';
 import { newWorkerManager, RenderWorkManager } from '../worker/renderWorkerManager';
+import { getBlobFromCanvas } from '../util/canvasToBlob';
+import BlobManager from '../util/copyDownloadBlobManager';
 
 @Component({
     selector: 'app-root',
@@ -138,6 +141,25 @@ export class AppComponent {
         }
     }
 
+    private readonly blobManager = new BlobManager();
+
+    private async downloadSkybox() {
+        const zipFileStream = new TransformStream();
+        const zipFileBlobPromise = new Response(zipFileStream.readable).blob();
+
+        const zipWriter = new ZipWriter(zipFileStream.writable);
+        const mimes = [];
+        for (const [side, canvas] of Object.entries(this.canvasses())) {
+            const [blob, ext] = await getBlobFromCanvas(canvas);
+            await zipWriter.add(`${side}.${ext}`, blob.stream());
+        }
+        await zipWriter.close();
+
+        const zipFileBlob = await zipFileBlobPromise;
+        this.blobManager.downloadBlob(zipFileBlob, "skybox.zip");
+        this.blobManager.copyBlobs(zipFileBlob);
+    }
+
     // Tweakpane options pane
 
     private pane?: Pane;
@@ -207,8 +229,9 @@ export class AppComponent {
             this.updateURL();
         });
 
-        // pane.addButton({ title: "Download skybox" })
-        //     .on("click", () => this.downloadSkybox());
+        pane.addBlade({ view: "separator" });
+        pane.addButton({ title: "Download skybox" })
+            .on("click", () => this.downloadSkybox());
     }
 
     private async renderTextures() {
