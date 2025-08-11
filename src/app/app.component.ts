@@ -146,8 +146,7 @@ export class AppComponent {
 
     private async downloadSkybox() {
         const zipFileStream = new TransformStream();
-        const zipFileBlobPromise = new Response(zipFileStream.readable).blob()
-            .then(blob => new Blob([blob], { type: "application/zip" }));
+        const zipFileBlobPromise = new Response(zipFileStream.readable).blob();
 
         const zipWriter = new ZipWriter(zipFileStream.writable);
         await Promise.all((Object.entries(this.canvasses()) as [string, Canvas][])
