@@ -245,8 +245,11 @@ export class AppComponent {
         });
 
         pane.addBlade({ view: "separator" });
-        pane.addButton({ title: "Download skybox" })
-            .on("click", () => this.downloadSkybox());
+        const downloadButton = pane.addButton({ title: "Download skybox" }).on("click", async () => {
+            downloadButton.disabled = true;
+            await this.downloadSkybox();
+            downloadButton.disabled = false;
+        });
     }
 
     private async renderTextures() {
