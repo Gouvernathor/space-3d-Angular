@@ -9,6 +9,7 @@ import initialQueryParamMap from '../util/initialQueryParamMap';
 import { newWorkerManager, RenderWorkManager } from '../worker/renderWorkerManager';
 import { getBlobFromCanvas } from '../util/canvasToBlob';
 import BlobManager from '../util/copyDownloadBlobManager';
+import { Canvas } from '../lib/constants';
 
 @Component({
     selector: 'app-root',
@@ -149,12 +150,12 @@ export class AppComponent {
             .then(blob => new Blob([blob], { type: "application/zip" }));
 
         const zipWriter = new ZipWriter(zipFileStream.writable);
-        for (const [side, canvas] of Object.entries(this.canvasses())) {
-            const [blob, ext] = await getBlobFromCanvas(canvas);
-            await zipWriter.add(`${side}.${ext}`, blob.stream());
-        }
-        const [cubemapBlob, cubemapExt] = await getBlobFromCanvas(this.generateCubeMap());
-        await zipWriter.add(`cubemap.${cubemapExt}`, cubemapBlob.stream());
+        await Promise.all((Object.entries(this.canvasses()) as [string, Canvas][])
+            .concat([["cubemap", this.generateCubeMap()]])
+            .map(async ([side, canvas]) => {
+                const [blob, ext] = await getBlobFromCanvas(canvas);
+                return zipWriter.add(`${side}.${ext}`, blob.stream());
+            }));
         await zipWriter.close();
 
         const zipFileBlob = await zipFileBlobPromise;
