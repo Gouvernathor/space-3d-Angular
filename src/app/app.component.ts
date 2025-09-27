@@ -3,13 +3,13 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { Pane } from 'tweakpane';
 import * as glm from 'gl-matrix';
 import { ZipWriter } from '@zip.js/zip.js';
-import AnimationFrameManager from '../util/animationFrameManager';
+import CanvasToBlobConverter from 'canvas-blob-manager/canvasToBlobConverter';
+import { downloadBlob } from 'canvas-blob-manager/copyDownloadBlob';
+import { Canvas } from '../lib/constants';
 import generateRandomSeed from '../util/generateRandomSeed';
+import AnimationFrameManager from '../util/animationFrameManager';
 import initialQueryParamMap from '../util/initialQueryParamMap';
 import { newWorkerManager, RenderWorkManager } from '../worker/renderWorkerManager';
-import { getBlobFromCanvas } from '../util/canvasToBlob';
-import BlobManager from '../util/copyDownloadBlobManager';
-import { Canvas } from '../lib/constants';
 
 @Component({
     selector: 'app-root',
@@ -142,7 +142,7 @@ export class AppComponent {
         }
     }
 
-    private readonly blobManager = new BlobManager();
+    private readonly canvasToBlobConverter = new CanvasToBlobConverter();
 
     private async downloadSkybox() {
         const zipFileStream = new TransformStream();
@@ -152,13 +152,17 @@ export class AppComponent {
         await Promise.all((Object.entries(this.canvasses()) as [string, Canvas][])
             .concat([["cubemap", this.generateCubeMap()]])
             .map(async ([side, canvas]) => {
-                const [blob, ext] = await getBlobFromCanvas(canvas);
+                const blobs = await this.canvasToBlobConverter.getBlobs(canvas);
+                const mime = this.canvasToBlobConverter.blobMimes
+                    .find(mime => mime in blobs)!;
+                const blob = blobs[mime];
+                const ext = mime.split("/")[1];
                 return zipWriter.add(`${side}.${ext}`, blob.stream());
             }));
         await zipWriter.close();
 
         const zipFileBlob = await zipFileBlobPromise;
-        await this.blobManager.downloadBlob(zipFileBlob, "skybox.zip");
+        await downloadBlob(zipFileBlob, "skybox.zip");
     }
     private generateCubeMap() {
         const resolution = this.params.resolution;
