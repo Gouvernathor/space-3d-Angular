@@ -2,8 +2,8 @@ import { Canvas } from "../lib/constants";
 
 const blobMimes = [ "image/webp", "image/png" ];
 
-export async function getBlobFromCanvas(canvas: Canvas): Promise<[Blob, string]> {
-    const result = (await Promise.allSettled(blobMimes.map(mime =>
+export async function getBlobFromCanvas(canvas: Canvas, mimes = blobMimes): Promise<[Blob, string]> {
+    const result = (await Promise.allSettled(mimes.map(mime =>
         canvas instanceof HTMLCanvasElement ?
             fromHTMLCanvas(canvas, mime) :
             fromOffscreenCanvas(canvas, mime)

@@ -29,11 +29,13 @@ export default class BlobManager {
         if (clips.length > 0) {
             try {
                 await navigator.clipboard.write(clips);
+                return true;
             } catch (error) {
                 console.error("Failed to copy blobs to clipboard:", error);
             }
         } else {
             console.error("No supported blobs to copy");
         }
+        return false;
     }
 }
